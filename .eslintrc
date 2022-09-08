@@ -1,0 +1,7 @@
+{
+  "extends": "@antfu",
+  "rules": {
+    "no-new": "off",
+    "no-async-promise-executor": "off"
+  }
+}
