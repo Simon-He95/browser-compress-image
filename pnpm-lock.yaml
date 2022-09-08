@@ -20,14 +20,14 @@ importers:
       vue: ^3.2.36
     dependencies:
       '@vueuse/core': 8.6.0_vue@3.2.36
+      browser-image-compression: 2.0.0
+      compressorjs: 1.1.1
       vue: 3.2.36
     devDependencies:
       '@antfu/eslint-config': 0.25.2_xztl6dhthcahlo6akmb2bmjmle
       '@types/node': 17.0.38
       '@vitejs/plugin-vue': 3.0.1_vite@3.0.2+vue@3.2.36
-      browser-image-compression: 2.0.0
       bumpp: 7.1.1
-      compressorjs: 1.1.1
       eslint: 8.16.0
       eslint-plugin-n: 15.2.1_eslint@8.16.0
       pkgroll: 1.3.1_typescript@4.7.2
@@ -1167,7 +1167,6 @@ packages:
 
   /blueimp-canvas-to-blob/3.29.0:
     resolution: {integrity: sha512-0pcSSGxC0QxT+yVkivxIqW0Y4VlO2XSDPofBAqoJ1qJxgH9eiUDLv50Rixij2cDuEfx4M6DpD9UGZpRhT5Q8qg==}
-    dev: true
 
   /boolbase/1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
@@ -1197,7 +1196,7 @@ packages:
     resolution: {integrity: sha512-kBlkZo13yOOfcmrPW0M0K/UdZPogIQj2gRvXIM3FktAnfW6VRq9aY2RI+F6O0x6DMj1Xm+WLGgWcFK8Fu/ddnw==}
     dependencies:
       uzip: 0.20201231.0
-    dev: true
+    dev: false
 
   /browser-process-hrtime/1.0.0:
     resolution: {integrity: sha512-9o5UecI3GhkpM6DrXr69PblIuWxPKk9Y0jHBRhdocZ2y7YECBFCsHm79Pr3OyR2AvjhDkabFJaDJMYRazHgsow==}
@@ -1377,7 +1376,7 @@ packages:
     dependencies:
       blueimp-canvas-to-blob: 3.29.0
       is-blob: 2.1.0
-    dev: true
+    dev: false
 
   /concat-map/0.0.1:
     resolution: {integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=}
@@ -2952,7 +2951,6 @@ packages:
   /is-blob/2.1.0:
     resolution: {integrity: sha512-SZ/fTft5eUhQM6oF/ZaASFDEdbFVe89Imltn9uZr03wdKMcWNVYSMjQPFtg05QuNkt5l5c135ElvXEQG0rk4tw==}
     engines: {node: '>=6'}
-    dev: true
 
   /is-boolean-object/1.1.2:
     resolution: {integrity: sha512-gDYaKHJmnj4aWxyj6YHyXVpdQawtVLHU5cb+eztPGczf6cjuTdwve5ZIEfgXqH4e57An1D1AKf8CZ3kYrQRqYA==}
@@ -4375,7 +4373,6 @@ packages:
 
   /uzip/0.20201231.0:
     resolution: {integrity: sha512-OZeJfZP+R0z9D6TmBgLq2LHzSSptGMGDGigGiEe0pr8UBe/7fdflgHlHBNDASTXB5jnFuxHpNaJywSg8YFeGng==}
-    dev: true
 
   /v8-compile-cache/2.3.0:
     resolution: {integrity: sha512-l8lCEmLcLYZh4nbunNZvQCJc5pv7+RCwa8q/LdUx8u7lsWvPDKmpodJAJNwkAhJC//dFY48KuIEmjtd4RViDrA==}
