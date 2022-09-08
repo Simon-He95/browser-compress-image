@@ -1,6 +1,6 @@
 {
   "name": "@simon_he/browser-compress-image",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "packageManager": "pnpm@6.32.3",
   "description": "browser-compress-image",
   "author": "Simon He",
