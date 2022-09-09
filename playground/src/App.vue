@@ -1,9 +1,9 @@
 <script setup lang="ts">
-// import { compress } from '../../src'
 import { toBase64 } from 'simon-js-tool'
-import { compress } from '@simon_he/browser-compress-image'
-const originSize = ref<Number>()
-const compressSize = ref<Number>()
+import { compress } from '../../src'
+// import { compress } from '@simon_he/browser-compress-image'
+const originSize = ref<String>()
+const compressSize = ref<String>()
 const oldbase = ref<string>()
 const newbase = ref<string>()
 onMounted(() => {
@@ -25,11 +25,31 @@ onMounted(() => {
       <div>压缩前: {{ originSize }}mb</div>
       <div>压缩后: {{ compressSize }}mb</div>
       <div>压缩了: {{ (originSize - compressSize).toFixed(2) }}mb</div>
+      <div>
+        压缩率:
+        {{ ((originSize - compressSize / originSize) * 100).toFixed(2) }}%
+      </div>
     </div>
 
-    <div grid grid-cols-2 gap-10 py-2>
-      <img :src="oldbase" alt="">
-      <img :src="newbase" alt="">
+    <div v-if="newbase" grid grid-cols-2 gap-10 py-2>
+      <img
+        :src="oldbase"
+        alt="压缩前的图片"
+        border-1
+        border-gray
+        border-rd-1
+        p5
+        ma
+      >
+      <img
+        :src="newbase"
+        alt="压缩后的图片"
+        border-1
+        border-gray
+        border-rd-1
+        p5
+        ma
+      >
     </div>
   </div>
   <Footer />
