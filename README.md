@@ -1,5 +1,5 @@
 ## Browser-compress-image
-实现依赖于[compressorjs](https://github.com/fengyuanchen/compressorjs)和[browser-image-compression](https://github.com/Donaldcwl/browser-image-compression#readme)
+实现依赖于[compressorjs](https://github.com/fengyuanchen/compressorjs)、[browser-image-compression](https://github.com/Donaldcwl/browser-image-compression#readme)、[gifsicle-wasm-browser](https://github.com/renzhezhilu/gifsicle-wasm-browser)
 
 ## 安装
 ```
