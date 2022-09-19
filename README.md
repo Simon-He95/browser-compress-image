@@ -1,4 +1,10 @@
-## Browser-compress-image
+<div align="center">
+  <img src="./assets/banner.png" width="400">
+</div>
+<div align="center">
+  Browser-compress-image
+</div>
+
 实现依赖于[compressorjs](https://github.com/fengyuanchen/compressorjs)、[browser-image-compression](https://github.com/Donaldcwl/browser-image-compression#readme)、[gifsicle-wasm-browser](https://github.com/renzhezhilu/gifsicle-wasm-browser)
 
 ## 安装
@@ -14,4 +20,4 @@ const blob = await compressImage(file, quality)
 ```
 
 ## 压缩对比
-![img](./assets/pic.jpg)
+![img](./assets/pic.png)

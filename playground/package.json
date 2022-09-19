@@ -21,6 +21,7 @@
     "@unocss/reset": "^0.29.2",
     "@vitejs/plugin-vue": "^3.0.1",
     "@vue/test-utils": "^2.0.0-rc.18",
+    "element-plus": "^2.2.16",
     "eslint": "^8.11.0",
     "jsdom": "^19.0.0",
     "pnpm": "^6.32.3",
@@ -31,6 +32,7 @@
     "vite": "^3.0.2",
     "vite-plugin-pages": "^0.22.0",
     "vitest": "^0.7.0",
+    "vivid-typing": "^1.1.26",
     "vue-tsc": "^0.33.2"
   }
 }
