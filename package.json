@@ -55,7 +55,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^0.25.2",
     "@simon_he/browser-compress-image": "workspace:^1.0.1",
-    "@simon_he/git-fork": "^0.0.6",
+    "@simon_he/git-fork": "^0.0.8",
     "@types/node": "^17.0.38",
     "@vitejs/plugin-vue": "^3.0.1",
     "bumpp": "^7.1.1",

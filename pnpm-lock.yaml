@@ -6,7 +6,7 @@ importers:
     specifiers:
       '@antfu/eslint-config': ^0.25.2
       '@simon_he/browser-compress-image': workspace:^1.0.1
-      '@simon_he/git-fork': ^0.0.6
+      '@simon_he/git-fork': ^0.0.8
       '@types/node': ^17.0.38
       '@vitejs/plugin-vue': ^3.0.1
       '@vueuse/core': ^8.1.1
@@ -35,7 +35,7 @@ importers:
     devDependencies:
       '@antfu/eslint-config': 0.25.2_xztl6dhthcahlo6akmb2bmjmle
       '@simon_he/browser-compress-image': 'link:'
-      '@simon_he/git-fork': 0.0.6
+      '@simon_he/git-fork': 0.0.8
       '@types/node': 17.0.38
       '@vitejs/plugin-vue': 3.0.1_vite@3.0.2+vue@3.2.36
       bumpp: 7.1.1
@@ -559,8 +559,8 @@ packages:
       picomatch: 2.3.1
     dev: true
 
-  /@simon_he/git-fork/0.0.6:
-    resolution: {integrity: sha512-KeK9ThNiatIT7cCprxWqHMKAxXWUD55OHuiIBrgDw0s8GAWcfs2TfvQvsZdDnPoWAmzhXhSSbC3kFG0aYid8/A==}
+  /@simon_he/git-fork/0.0.8:
+    resolution: {integrity: sha512-XunCJerdmhTaSVySmgCPxLru/J38+q6V81OmD9VEj9rBA4v/5y8h+QoDeEKYjmTsT9wmtfnIKpOGBy/BhF9EIw==}
     dependencies:
       '@vueuse/core': 8.6.0_vue@3.2.36
       vue: 3.2.36

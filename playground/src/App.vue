@@ -55,8 +55,7 @@ const upload = () => {
 </script>
 
 <template>
-  <div font-sans>
-    <!-- <div fixed top-0 right-0 border-0 z-10></div> -->
+  <div font-sans overflow-hidden>
     <git-fork
       link="https://github.com/Simon-He95/browser-compress-image"
       position="right"
@@ -74,7 +73,7 @@ const upload = () => {
     />
 
     <div w-100 ma>
-      <div flex="~ gap-4" items-center lh-10>
+      <div flex="~ gap-4" items-center lh-10 justify-center>
         <el-button size="large" @click="upload">
           Upload<el-icon class="el-icon--right">
             <Upload />
@@ -96,7 +95,7 @@ const upload = () => {
       <div v-show="file">
         <span mr3 font-bold>name:</span>{{ file?.name }}
       </div>
-      <div v-if="compressSize" flex="~ gap-20">
+      <div v-if="compressSize" flex="~ gap-10 wrap">
         <div>
           <span font-bold mr3>Before compression:</span>
           <span color-green font-800>{{ originSize }}mb</span>
