@@ -1,10 +1,12 @@
 <div align="center">
   <img src="./assets/banner.png" width="400">
 </div>
-<div align="center">
-  Browser-compress-image
-</div>
 
+<span><div align="center">
+  ![picture](/assets//kv.png)
+</div></span>
+
+## 感谢
 实现依赖于[compressorjs](https://github.com/fengyuanchen/compressorjs)、[browser-image-compression](https://github.com/Donaldcwl/browser-image-compression#readme)、[gifsicle-wasm-browser](https://github.com/renzhezhilu/gifsicle-wasm-browser)
 
 ## 安装
