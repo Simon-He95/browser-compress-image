@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { gitFork } from '@simon_he/git-fork'
-import { toBase64 } from 'simon-js-tool'
-import { Upload } from '@element-plus/icons-vue'
+import { download, toBase64 } from 'simon-js-tool'
+import { ElMessage } from 'element-plus'
+import { CloseBold, Download, Loading, Upload } from '@element-plus/icons-vue'
 import { compress } from '../../src'
-// import { compress } from '@simon_he/browser-compress-image'
 const originSize = ref<String>()
 const compressSize = ref<String>()
 const oldbase = ref<string>()
 const newbase = ref<string>()
 const quality = ref(60)
 const file = ref<File>(null)
+const loading = ref(false)
 
 const marks = reactive({
   10: '10%',
@@ -28,21 +29,32 @@ const compressImage = async () => {
   if (!file.value)
     return
   const compressFile = await compress(file.value, quality.value / 100)
+  if (!compressFile) {
+    return ElMessage({
+      message: 'size is too large',
+      type: 'error',
+    })
+  }
   originSize.value = (file.value.size / 1024 / 1024).toFixed(2)
   compressSize.value = (compressFile.size / 1024 / 1024).toFixed(2)
   oldbase.value = URL.createObjectURL(file.value)
   newbase.value = URL.createObjectURL(compressFile)
 }
 onMounted(() => {
-  document.getElementById('file')!.addEventListener('change', async (e) => {
-    file.value = e.target.files[0]
-    compressImage()
+  document.getElementById('file')!.addEventListener('change', (e: any) => {
+    file.value = e.target!.files[0]
+    update()
   })
 })
 
+async function update() {
+  loading.value = true
+  await compressImage()
+  loading.value = false
+}
 const changeHandler = (val) => {
   quality.value = val
-  compressImage()
+  update()
 }
 const rate = computed(() => {
   return (
@@ -52,10 +64,25 @@ const rate = computed(() => {
 const upload = () => {
   document.getElementById('file')?.click()
 }
+const down = () => {
+  download(newbase.value, file.value.name)
+}
+
+const deleteHandler = () => {
+  newbase.value = ''
+  oldbase.value = ''
+  file.value = null
+  compressSize.value = ''
+}
 </script>
 
 <template>
   <div font-sans overflow-hidden>
+    <div v-show="loading" class="loading">
+      <el-icon class="is-loading" size="28px">
+        <Loading />
+      </el-icon>
+    </div>
     <git-fork
       link="https://github.com/Simon-He95/browser-compress-image"
       position="right"
@@ -74,9 +101,14 @@ const upload = () => {
 
     <div w-100 ma>
       <div flex="~ gap-4" items-center lh-10 justify-center>
-        <el-button size="large" @click="upload">
+        <el-button v-if="!newbase" size="large" @click="upload">
           Upload<el-icon class="el-icon--right">
             <Upload />
+          </el-icon>
+        </el-button>
+        <el-button v-else type="primary" @click="down">
+          Download<el-icon class="el-icon--right">
+            <Download />
           </el-icon>
         </el-button>
         <div>quality: {{ quality }}%</div>
@@ -92,8 +124,11 @@ const upload = () => {
     </div>
     <input id="file" type="file" accept="image/*" hidden>
     <div pt7 px4>
-      <div v-show="file">
-        <span mr3 font-bold>name:</span>{{ file?.name }}
+      <div v-show="file" flex="~ gap3" items-center>
+        <span mr3 font-bold>Name:</span>{{ file?.name }}
+        <el-icon color="red" @click="deleteHandler">
+          <CloseBold />
+        </el-icon>
       </div>
       <div v-if="compressSize" flex="~ gap-10 wrap">
         <div>
@@ -141,5 +176,16 @@ const upload = () => {
 </template>
 
 <style scoped>
+.loading {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
 </style>
-
