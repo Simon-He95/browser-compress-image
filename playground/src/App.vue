@@ -1,79 +1,77 @@
 <script setup lang="ts">
-import { gitFork } from '@simon_he/git-fork'
-import { download, toBase64 } from 'simon-js-tool'
-import { ElMessage } from 'element-plus'
-import { CloseBold, Download, Loading, Upload } from '@element-plus/icons-vue'
-import { compress } from '../../src'
-const originSize = ref<String>()
-const compressSize = ref<String>()
-const oldbase = ref<string>()
-const newbase = ref<string>()
-const quality = ref(60)
-const file = ref<File>(null)
-const loading = ref(false)
+import { gitFork } from "@simon_he/git-fork";
+import { download } from "lazy-js-utils";
+import { ElMessage } from "element-plus";
+import { CloseBold, Download, Loading, Upload } from "@element-plus/icons-vue";
+import { compress } from "../../src";
+const originSize = ref<String>();
+const compressSize = ref<String>();
+const oldbase = ref<string>();
+const newbase = ref<string>();
+const quality = ref(60);
+const file = ref<File>();
+const loading = ref(false);
+const fileRef = ref();
 
 const marks = reactive({
-  10: '10%',
-  20: '20%',
-  30: '30%',
-  40: '40%',
-  50: '50%',
-  60: '60%',
-  70: '70%',
-  80: '80%',
-  90: '90%',
-  100: '100%',
-})
+  10: "10%",
+  20: "20%",
+  30: "30%",
+  40: "40%",
+  50: "50%",
+  60: "60%",
+  70: "70%",
+  80: "80%",
+  90: "90%",
+  100: "100%",
+});
 
 const compressImage = async () => {
-  if (!file.value)
-    return
-  const compressFile = await compress(file.value, quality.value / 100)
+  if (!file.value) return;
+  const compressFile = await compress(file.value, quality.value / 100);
   if (!compressFile) {
     return ElMessage({
-      message: 'size is too large',
-      type: 'error',
-    })
+      message: "size is too large",
+      type: "error",
+    });
   }
-  originSize.value = (file.value.size / 1024 / 1024).toFixed(2)
-  compressSize.value = (compressFile.size / 1024 / 1024).toFixed(2)
-  oldbase.value = URL.createObjectURL(file.value)
-  newbase.value = URL.createObjectURL(compressFile)
-}
+  originSize.value = (file.value.size / 1024 / 1024).toFixed(2);
+  compressSize.value = (compressFile.size / 1024 / 1024).toFixed(2);
+  oldbase.value = URL.createObjectURL(file.value);
+  newbase.value = URL.createObjectURL(compressFile);
+};
 onMounted(() => {
-  document.getElementById('file')!.addEventListener('change', (e: any) => {
-    file.value = e.target!.files[0]
-    update()
-  })
-})
+  fileRef.value!.addEventListener("change", update);
+});
 
 async function update() {
-  loading.value = true
-  await compressImage()
-  loading.value = false
+  file.value = fileRef.value.files[0];
+  loading.value = true;
+  await compressImage();
+  loading.value = false;
 }
-const changeHandler = (val) => {
-  quality.value = val
-  update()
-}
+const changeHandler = (val: number) => {
+  quality.value = val;
+  update();
+};
 const rate = computed(() => {
   return (
-    ((originSize.value - compressSize.value) / originSize.value || 0) * 100
-  ).toFixed(2)
-})
+    ((+originSize.value! - +compressSize.value!) / +originSize.value! || 0) * 100
+  ).toFixed(2);
+});
 const upload = () => {
-  document.getElementById('file')?.click()
-}
+  document.getElementById("file")?.click();
+};
 const down = () => {
-  download(newbase.value, file.value.name)
-}
+  download(newbase.value!, file.value!.name);
+};
 
 const deleteHandler = () => {
-  newbase.value = ''
-  oldbase.value = ''
-  file.value = null
-  compressSize.value = ''
-}
+  newbase.value = "";
+  oldbase.value = "";
+  file.value = undefined;
+  compressSize.value = "";
+};
 </script>
 
 <template>
@@ -88,7 +86,7 @@ const deleteHandler = () => {
       position="right"
     />
     <vivid-typing
-      content="browser-compress-image"
+      content="Browser Compress Image"
       text-3xl
       font-bold
       text-center
@@ -122,7 +120,7 @@ const deleteHandler = () => {
         @change="changeHandler"
       />
     </div>
-    <input id="file" type="file" accept="image/*" hidden>
+    <input id="file" ref="fileRef" type="file" accept="image/*" hidden />
     <div pt7 px4>
       <div v-show="file" flex="~ gap3" items-center>
         <span mr3 font-bold>Name:</span>{{ file?.name }}
@@ -141,11 +139,13 @@ const deleteHandler = () => {
         </div>
         <div>
           <span font-bold mr3>Compressed:</span>
-          <span color-green font-800>{{ (originSize - compressSize).toFixed(2) }}mb</span>
+          <span color-green font-800
+            >{{ (+originSize! - +compressSize).toFixed(2) }}mb</span
+          >
         </div>
         <div>
           <span font-bold mr3>Compression percentage:</span>
-          <span :class="[rate > 50 ? 'color-green' : 'color-red']" font-800>
+          <span :class="[+rate > 50 ? 'color-green' : 'color-red']" font-800>
             {{ rate }}%
           </span>
         </div>
@@ -153,24 +153,8 @@ const deleteHandler = () => {
     </div>
 
     <div v-if="newbase" grid grid-cols-2 gap-10 py-2>
-      <img
-        :src="oldbase"
-        alt="压缩前的图片"
-        border-1
-        border-gray
-        border-rd-1
-        p5
-        ma
-      >
-      <img
-        :src="newbase"
-        alt="压缩后的图片"
-        border-1
-        border-gray
-        border-rd-1
-        p5
-        ma
-      >
+      <img :src="oldbase" alt="压缩前的图片" border-1 border-gray border-rd-1 p5 ma />
+      <img :src="newbase" alt="压缩后的图片" border-1 border-gray border-rd-1 p5 ma />
     </div>
   </div>
 </template>
