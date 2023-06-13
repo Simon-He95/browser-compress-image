@@ -16,7 +16,7 @@ npm i @simon_he/browse-compress-image
 
 ## 使用
 ```
-import { compressImage } from '@simon_he/browse-compress-image'
+import { compressImage } from '@simon_he/browser-compress-image'
 const blob = await compressImage(file, quality)
 ```
 
