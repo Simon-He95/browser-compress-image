@@ -25,10 +25,28 @@ const marks = reactive({
   90: '90%',
   100: '100%',
 })
+const oldSrcList = ref<string[]>([])
+const newSrcList = ref<string[]>([])
+const supportType = ['image/png', 'image/jpg', 'image/jpeg']
+
+const deleteHandler = () => {
+  newbase.value = ''
+  oldbase.value = ''
+  file.value = undefined
+  compressSize.value = ''
+}
 
 const compressImage = async () => {
   if (!file.value)
     return
+  const type = file.value.type
+  if (!supportType.includes(type)) {
+    deleteHandler()
+    return ElMessage({
+      message: `${type}格式还不支持`,
+      type: 'error',
+    })
+  }
   const compressFile = await compress(file.value, quality.value / 100)
   if (!compressFile) {
     return ElMessage({
@@ -39,7 +57,9 @@ const compressImage = async () => {
   originSize.value = (file.value.size / 1024 / 1024).toFixed(2)
   compressSize.value = (compressFile.size / 1024 / 1024).toFixed(2)
   oldbase.value = URL.createObjectURL(file.value)
+  oldSrcList.value = [oldbase.value]
   newbase.value = URL.createObjectURL(compressFile)
+  newSrcList.value = [newbase.value]
 }
 onMounted(() => {
   fileRef.value!.addEventListener('change', update)
@@ -49,6 +69,7 @@ async function update() {
   file.value = fileRef.value.files[0]
   loading.value = true
   await compressImage()
+
   loading.value = false
 }
 const changeHandler = (val: number) => {
@@ -66,13 +87,6 @@ const upload = () => {
 const down = () => {
   download(newbase.value!, file.value!.name)
 }
-
-const deleteHandler = () => {
-  newbase.value = ''
-  oldbase.value = ''
-  file.value = undefined
-  compressSize.value = ''
-}
 </script>
 
 <template>
@@ -82,22 +96,8 @@ const deleteHandler = () => {
         <Loading />
       </el-icon>
     </div>
-    <git-fork
-      link="https://github.com/Simon-He95/browser-compress-image"
-      position="right"
-    />
-    <vivid-typing
-      content="Browser Compress Image"
-      text-3xl
-      font-bold
-      text-center
-      mb-10
-      bg-gray
-      lh-30
-      ma
-      color-white
-    />
-
+    <git-fork link="https://github.com/Simon-He95/browser-compress-image" position="right" />
+    <vivid-typing content="Browser Compress Image" text-3xl font-bold text-center mb-10 bg-gray lh-30 ma color-white />
     <div w-100 ma>
       <div flex="~ gap-4" items-center lh-10 justify-center>
         <el-button v-if="!newbase" size="large" @click="upload">
@@ -112,20 +112,12 @@ const deleteHandler = () => {
         </el-button>
         <div>quality: {{ quality }}%</div>
       </div>
-      <el-slider
-        v-model="quality"
-        py-8
-        :max="100"
-        :step="1"
-        :marks="marks"
-        @change="changeHandler"
-      />
+      <el-slider v-model="quality" py-8 :max="100" :step="1" :marks="marks" @change="changeHandler" />
     </div>
     <input id="file" ref="fileRef" type="file" accept="image/*" hidden>
     <div pt7 px4>
       <div v-show="file" flex="~ gap3" items-center>
-        <span mr3 font-bold>Name:</span>{{ file?.name }}
-        <el-icon color="red" cursor-pointer @click="deleteHandler">
+        <span mr3 font-bold>Name:</span>{{ file?.name }} <el-icon color="red" cursor-pointer @click="deleteHandler">
           <CloseBold />
         </el-icon>
       </div>
@@ -144,16 +136,13 @@ const deleteHandler = () => {
         </div>
         <div>
           <span font-bold mr3>Compression percentage:</span>
-          <span :class="[+rate > 50 ? 'color-green' : 'color-red']" font-800>
-            {{ rate }}%
-          </span>
+          <span :class="[+rate > 50 ? 'color-green' : 'color-red']" font-800> {{ rate }}% </span>
         </div>
       </div>
     </div>
-
-    <div v-if="newbase" grid grid-cols-2 gap-10 py-2>
-      <img :src="oldbase" alt="压缩前的图片" border-1 border-gray border-rd-1 p5 ma>
-      <img :src="newbase" alt="压缩后的图片" border-1 border-gray border-rd-1 p5 ma>
+    <div v-if="newbase" grid grid-cols-2 gap-10 p-2>
+      <el-image :src="oldbase" border-1 border-gray border-rd-1 p5 ma :preview-src-list="oldSrcList" />
+      <el-image :src="newbase" border-1 border-gray border-rd-1 p5 ma :preview-src-list="newSrcList" />
     </div>
   </div>
 </template>
