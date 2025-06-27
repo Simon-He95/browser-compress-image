@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { gitFork } from '@simon_he/git-fork'
-import { download } from 'lazy-js-utils'
-import { ElMessage } from 'element-plus'
 import { CloseBold, Download, Loading, Upload } from '@element-plus/icons-vue'
+import { gitFork } from '@simon_he/git-fork'
+import { ElMessage } from 'element-plus'
+import { download } from 'lazy-js-utils'
 import { compress } from '../../src'
-const originSize = ref<String>()
-const compressSize = ref<String>()
+
+const originSize = ref<string>()
+const compressSize = ref<string>()
 const oldbase = ref<string>()
 const newbase = ref<string>()
 const quality = ref(60)
@@ -29,14 +30,14 @@ const oldSrcList = ref<string[]>([])
 const newSrcList = ref<string[]>([])
 const supportType = ['image/png', 'image/jpg', 'image/jpeg']
 
-const deleteHandler = () => {
+function deleteHandler() {
   newbase.value = ''
   oldbase.value = ''
   file.value = undefined
   compressSize.value = ''
 }
 
-const compressImage = async () => {
+async function compressImage() {
   if (!file.value)
     return
   const type = file.value.type
@@ -72,7 +73,7 @@ async function update() {
 
   loading.value = false
 }
-const changeHandler = (val: number) => {
+function changeHandler(val: number) {
   quality.value = val
   update()
 }
@@ -81,10 +82,10 @@ const rate = computed(() => {
     ((+originSize.value! - +compressSize.value!) / +originSize.value! || 0) * 100
   ).toFixed(2)
 })
-const upload = () => {
+function upload() {
   document.getElementById('file')?.click()
 }
-const down = () => {
+function down() {
   download(newbase.value!, file.value!.name)
 }
 </script>

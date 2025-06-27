@@ -23,6 +23,5 @@ const blob = await compressImage(file, quality)
 ## 压缩对比
 ![img](./assets/pic.png)
 
-
 ## License
 [MIT](./LICENSE) License © 2022 [Simon He](https://github.com/Simon-He95)
