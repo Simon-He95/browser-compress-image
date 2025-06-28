@@ -18,7 +18,7 @@ function createTestFile(type: string = 'image/jpeg'): File {
 describe('compress function', () => {
   it('should have correct function signature', () => {
     expect(typeof compress).toBe('function')
-    expect(compress.length).toBe(1) // Only required parameter (file)
+    expect(compress.length).toBe(3)
   })
 
   it('should work with basic usage', async () => {
