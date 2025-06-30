@@ -598,10 +598,10 @@ function setCurrentImage(index: number) {
         <el-icon class="drag-icon">
           <FolderOpened />
         </el-icon>
-        <span class="drag-text">Drop images or folders here</span>
-        <span class="drag-subtitle"
-          >Support multiple images and folder drag & drop</span
-        >
+        <div class="drag-text">Drop images or folders here</div>
+        <div class="drag-subtitle">
+          Support multiple images and folder drag & drop
+        </div>
       </div>
     </div>
 
@@ -1011,24 +1011,35 @@ function setCurrentImage(index: number) {
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 .drag-icon {
   font-size: 64px;
-  margin-bottom: 16px;
   opacity: 0.9;
+  display: block;
 }
 
 .drag-text {
   font-size: 24px;
   font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .drag-subtitle {
   font-size: 14px;
   opacity: 0.7;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.6;
+  margin: 0;
+  text-align: center;
+  max-width: 320px;
 }
 
 @keyframes fadeIn {
