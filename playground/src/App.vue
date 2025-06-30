@@ -134,14 +134,55 @@ async function handleDrop(e: DragEvent) {
   e.preventDefault()
   isDragOver.value = false
 
-  const items = e.dataTransfer?.items
-  if (!items) return
-
   loading.value = true
 
   try {
-    const files = await extractFilesFromDataTransfer(items)
+    let files: File[] = []
+
+    console.log('=== Drop Event Debug ===')
+    console.log('dataTransfer.items:', e.dataTransfer?.items)
+    console.log('dataTransfer.files:', e.dataTransfer?.files)
+    console.log('items length:', e.dataTransfer?.items?.length)
+    console.log('files length:', e.dataTransfer?.files?.length)
+
+    // 首先尝试使用 DataTransferItemList API（支持文件夹）
+    const items = e.dataTransfer?.items
+    if (items && items.length > 0) {
+      console.log('使用 DataTransferItemList API')
+      files = await extractFilesFromDataTransfer(items)
+      console.log(
+        'extractFilesFromDataTransfer 结果:',
+        files.length,
+        files.map((f) => f.name),
+      )
+    }
+
+    // 如果上面的方法没有获取到文件，回退到传统的 files API
+    if (files.length === 0 && e.dataTransfer?.files) {
+      console.log('回退到传统 files API')
+      files = Array.from(e.dataTransfer.files)
+      console.log(
+        '传统 API 结果:',
+        files.length,
+        files.map((f) => f.name),
+      )
+    }
+
+    if (files.length === 0) {
+      console.warn('没有找到任何文件')
+      ElMessage({
+        message: 'No files found. Please try again.',
+        type: 'warning',
+      })
+      return
+    }
+
     const imageFiles = files.filter((file) => supportType.includes(file.type))
+    console.log(
+      '过滤后的图片文件:',
+      imageFiles.length,
+      imageFiles.map((f) => f.name),
+    )
 
     if (imageFiles.length === 0) {
       ElMessage({
@@ -173,18 +214,56 @@ async function handleDrop(e: DragEvent) {
 async function extractFilesFromDataTransfer(
   items: DataTransferItemList,
 ): Promise<File[]> {
-  const files: File[] = []
+  console.log('extractFilesFromDataTransfer 开始处理', items.length, '个 items')
+
+  const promises: Promise<File[]>[] = []
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i]
+    console.log(`处理 Item ${i}:`, { kind: item.kind, type: item.type })
+
     if (item.kind === 'file') {
       const entry = item.webkitGetAsEntry()
+      console.log(`Item ${i} webkitGetAsEntry:`, entry)
+
       if (entry) {
-        await processEntry(entry, files)
+        console.log(`Item ${i} 使用 processEntry`)
+        const itemFiles: File[] = []
+        promises.push(
+          processEntry(entry, itemFiles).then(() => {
+            console.log(
+              `Item ${i} processEntry 完成，文件数:`,
+              itemFiles.length,
+              itemFiles.map((f) => f.name),
+            )
+            return itemFiles
+          }),
+        )
+      } else {
+        // 回退到传统文件API - 当webkitGetAsEntry返回null时
+        console.log(`Item ${i} 回退到 getAsFile`)
+        const file = item.getAsFile()
+        if (file) {
+          console.log(`Item ${i} getAsFile 成功:`, file.name)
+          promises.push(Promise.resolve([file]))
+        } else {
+          console.log(`Item ${i} getAsFile 失败`)
+          promises.push(Promise.resolve([]))
+        }
       }
     }
   }
 
+  // 等待所有文件处理完成
+  const allFileArrays = await Promise.all(promises)
+  const files = allFileArrays.flat()
+
+  console.log(
+    'extractFilesFromDataTransfer 完成，总共',
+    files.length,
+    '个文件:',
+    files.map((f) => f.name),
+  )
   return files
 }
 
@@ -193,23 +272,42 @@ async function processEntry(
   entry: FileSystemEntry,
   files: File[],
 ): Promise<void> {
+  console.log(
+    'processEntry 开始处理:',
+    entry.name,
+    entry.isFile,
+    entry.isDirectory,
+  )
+
   if (entry.isFile) {
     const fileEntry = entry as FileSystemFileEntry
-    const file = await new Promise<File>((resolve, reject) => {
-      fileEntry.file(resolve, reject)
-    })
-    files.push(file)
+    console.log('处理文件:', fileEntry.name)
+
+    try {
+      const file = await new Promise<File>((resolve, reject) => {
+        fileEntry.file(resolve, reject)
+      })
+      console.log('成功获取文件:', file.name, file.size, file.type)
+      files.push(file)
+      console.log('当前文件数组长度:', files.length)
+    } catch (error) {
+      console.error('获取文件失败:', fileEntry.name, error)
+    }
   } else if (entry.isDirectory) {
+    console.log('处理目录:', entry.name)
     const dirEntry = entry as FileSystemDirectoryEntry
     const reader = dirEntry.createReader()
     const entries = await new Promise<FileSystemEntry[]>((resolve, reject) => {
       reader.readEntries(resolve, reject)
     })
 
+    console.log('目录中的条目数:', entries.length)
     for (const childEntry of entries) {
       await processEntry(childEntry, files)
     }
   }
+
+  console.log('processEntry 完成:', entry.name, '当前总文件数:', files.length)
 }
 
 // 文件输入框变化处理
