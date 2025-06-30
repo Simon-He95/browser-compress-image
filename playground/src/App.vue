@@ -122,6 +122,17 @@ function deleteHandler() {
   compressSize.value = ''
 }
 
+// 格式化文件大小，自动切换 MB/KB 单位
+function formatSize(size: number) {
+  if (size >= 1024 * 1024) {
+    return (size / 1024 / 1024).toFixed(2) + 'MB'
+  } else if (size >= 1024) {
+    return (size / 1024).toFixed(2) + 'KB'
+  } else {
+    return size + 'B'
+  }
+}
+
 async function compressImage() {
   if (!file.value) return
   const type = file.value.type
@@ -143,8 +154,8 @@ async function compressImage() {
       type: 'error',
     })
   }
-  originSize.value = (file.value.size / 1024 / 1024).toFixed(2)
-  compressSize.value = (compressFile.size / 1024 / 1024).toFixed(2)
+  originSize.value = formatSize(file.value.size)
+  compressSize.value = formatSize(compressFile.size)
   oldbase.value = URL.createObjectURL(file.value)
   oldSrcList.value = [oldbase.value]
   newbase.value = URL.createObjectURL(compressFile)
@@ -415,7 +426,7 @@ async function down() {
             <div class="size-info">
               <span class="size-label">Size</span>
               <span class="stat-mini"
-                >{{ originSize }}MB → {{ compressSize }}MB</span
+                >{{ originSize }}→ {{ compressSize }}</span
               >
             </div>
             <div class="savings-badge">
