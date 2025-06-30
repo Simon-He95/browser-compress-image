@@ -46,7 +46,10 @@ console.log(compressedArrayBuffer instanceof ArrayBuffer) // true
 函数提供完整的 TypeScript 类型支持：
 
 ```typescript
-import type { CompressResult, CompressResultType } from '@simon_he/browser-compress-image'
+import type {
+  CompressResult,
+  CompressResultType,
+} from '@simon_he/browser-compress-image'
 import { compress } from '@simon_he/browser-compress-image'
 
 // 类型会根据第三个参数自动推断

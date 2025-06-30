@@ -3,8 +3,7 @@ const name = $ref('')
 
 const router = useRouter()
 function go() {
-  if (name)
-    router.push(`/hi/${encodeURIComponent(name)}`)
+  if (name) router.push(`/hi/${encodeURIComponent(name)}`)
 }
 </script>
 
@@ -12,7 +11,11 @@ function go() {
   <div>
     <div i-carbon-campsite text-4xl inline-block />
     <p>
-      <a rel="noreferrer" href="https://github.com/Simon-He95/vitesse-lite" target="_blank">
+      <a
+        rel="noreferrer"
+        href="https://github.com/Simon-He95/vitesse-lite"
+        target="_blank"
+      >
         Vitesse Lite
       </a>
     </p>
@@ -35,16 +38,10 @@ function go() {
       border="~ rounded gray-200 dark:gray-700"
       outline="none active:none"
       @keydown.enter="go"
-    >
+    />
 
     <div>
-      <button
-        class="m-3 text-sm btn"
-        :disabled="!name"
-        @click="go"
-      >
-        Go
-      </button>
+      <button class="m-3 text-sm btn" :disabled="!name" @click="go">Go</button>
     </div>
   </div>
 </template>

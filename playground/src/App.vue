@@ -54,8 +54,8 @@ function handleDragEnter(e: DragEvent) {
   e.preventDefault()
   if (e.dataTransfer?.items) {
     // 检查是否包含图片文件
-    const hasImageFile = Array.from(e.dataTransfer.items).some(item =>
-      item.kind === 'file' && item.type.startsWith('image/'),
+    const hasImageFile = Array.from(e.dataTransfer.items).some(
+      (item) => item.kind === 'file' && item.type.startsWith('image/'),
     )
     if (hasImageFile) {
       isDragOver.value = true
@@ -66,7 +66,10 @@ function handleDragEnter(e: DragEvent) {
 function handleDragLeave(e: DragEvent) {
   e.preventDefault()
   // 只有当离开整个应用区域时才设置为false
-  if (!e.relatedTarget || !document.querySelector('.app-container')?.contains(e.relatedTarget as Node)) {
+  if (
+    !e.relatedTarget ||
+    !document.querySelector('.app-container')?.contains(e.relatedTarget as Node)
+  ) {
     isDragOver.value = false
   }
 }
@@ -77,14 +80,13 @@ function handleDrop(e: DragEvent) {
 
   const files = e.dataTransfer?.files
   if (files && files.length > 0) {
-    const imageFile = Array.from(files).find(file =>
+    const imageFile = Array.from(files).find((file) =>
       supportType.includes(file.type),
     )
     if (imageFile) {
       // 自动替换当前图片
       processNewFile(imageFile)
-    }
-    else {
+    } else {
       ElMessage({
         message: 'Please drop a valid image file (PNG, JPG, JPEG, GIF)',
         type: 'warning',
@@ -121,8 +123,7 @@ function deleteHandler() {
 }
 
 async function compressImage() {
-  if (!file.value)
-    return
+  if (!file.value) return
   const type = file.value.type
   if (!supportType.includes(type)) {
     deleteHandler()
@@ -175,7 +176,9 @@ function optimizeImageRendering() {
 
   // 等待DOM更新
   setTimeout(() => {
-    const images = document.querySelectorAll('.comparison-image-fullscreen, img-comparison-slider img')
+    const images = document.querySelectorAll(
+      '.comparison-image-fullscreen, img-comparison-slider img',
+    )
     console.log('找到图片数量:', images.length)
 
     images.forEach((img, index) => {
@@ -229,7 +232,8 @@ function changeHandler(val: number) {
 }
 const rate = computed(() => {
   return (
-    ((+originSize.value! - +compressSize.value!) / +originSize.value! || 0) * 100
+    ((+originSize.value! - +compressSize.value!) / +originSize.value! || 0) *
+    100
   ).toFixed(2)
 })
 function upload() {
@@ -237,20 +241,21 @@ function upload() {
 }
 
 async function down() {
-  if (downloading.value || !newbase.value || !file.value)
-    return
+  if (downloading.value || !newbase.value || !file.value) return
 
   try {
     downloading.value = true
 
     // 添加一个小延迟来显示加载状态
-    await new Promise(resolve => setTimeout(resolve, 300))
+    await new Promise((resolve) => setTimeout(resolve, 300))
 
     // 生成压缩后的文件名
     const originalName = file.value.name
     const lastDotIndex = originalName.lastIndexOf('.')
-    const nameWithoutExt = lastDotIndex > 0 ? originalName.substring(0, lastDotIndex) : originalName
-    const extension = lastDotIndex > 0 ? originalName.substring(lastDotIndex) : ''
+    const nameWithoutExt =
+      lastDotIndex > 0 ? originalName.substring(0, lastDotIndex) : originalName
+    const extension =
+      lastDotIndex > 0 ? originalName.substring(lastDotIndex) : ''
     const compressedFileName = `${nameWithoutExt}_compressed${extension}`
 
     // 执行下载
@@ -259,20 +264,29 @@ async function down() {
     // 显示成功消息
     ElMessage({
       message: h('div', { style: 'line-height: 1.5;' }, [
-        h('div', { style: 'color: #16a34a; font-weight: 500; margin-bottom: 4px;' }, 'Image downloaded successfully!'),
-        h('div', { style: 'color: #059669; font-size: 13px; font-family: monospace; background: rgba(5, 150, 105, 0.1); padding: 2px 6px; border-radius: 4px;' }, compressedFileName),
+        h(
+          'div',
+          { style: 'color: #16a34a; font-weight: 500; margin-bottom: 4px;' },
+          'Image downloaded successfully!',
+        ),
+        h(
+          'div',
+          {
+            style:
+              'color: #059669; font-size: 13px; font-family: monospace; background: rgba(5, 150, 105, 0.1); padding: 2px 6px; border-radius: 4px;',
+          },
+          compressedFileName,
+        ),
       ]),
       type: 'success',
       duration: 3000,
     })
-  }
-  catch (error) {
+  } catch (error) {
     ElMessage({
       message: 'Download failed. Please try again.',
       type: 'error',
     })
-  }
-  finally {
+  } finally {
     downloading.value = false
   }
 }
@@ -295,9 +309,7 @@ async function down() {
         <el-icon class="is-loading" size="40px">
           <Loading />
         </el-icon>
-        <div class="loading-text">
-          Compressing...
-        </div>
+        <div class="loading-text">Compressing...</div>
       </div>
     </div>
 
@@ -335,7 +347,9 @@ async function down() {
             <Upload />
           </el-icon>
           <span class="upload-text">Drop or Click to Upload Image</span>
-          <span class="upload-hint">Support PNG, JPG, JPEG, GIF formats • Drag & Drop supported</span>
+          <span class="upload-hint"
+            >Support PNG, JPG, JPEG, GIF formats • Drag & Drop supported</span
+          >
         </button>
       </section>
 
@@ -343,19 +357,29 @@ async function down() {
       <div v-if="file" class="floating-toolbar">
         <div class="toolbar-section file-section">
           <div class="file-info">
-            <div class="file-icon">
-              📷
-            </div>
-            <span class="file-name-mini">{{ file?.name.length > 18 ? `${file?.name.substring(0, 18)}...` : file?.name }}</span>
+            <div class="file-icon">📷</div>
+            <span class="file-name-mini">{{
+              file?.name.length > 18
+                ? `${file?.name.substring(0, 18)}...`
+                : file?.name
+            }}</span>
           </div>
           <div class="action-buttons">
-            <button class="action-btn replace-btn" title="Replace Image" @click="upload">
+            <button
+              class="action-btn replace-btn"
+              title="Replace Image"
+              @click="upload"
+            >
               <div class="btn-icon">
                 <el-icon><Upload /></el-icon>
               </div>
               <span class="btn-text">Replace</span>
             </button>
-            <button class="action-btn delete-btn" title="Remove Image" @click="deleteHandler">
+            <button
+              class="action-btn delete-btn"
+              title="Remove Image"
+              @click="deleteHandler"
+            >
               <div class="btn-icon">
                 <el-icon><CloseBold /></el-icon>
               </div>
@@ -369,9 +393,7 @@ async function down() {
         <div class="toolbar-section quality-section">
           <div class="quality-control">
             <span class="quality-label">Quality</span>
-            <div class="quality-value">
-              {{ quality }}%
-            </div>
+            <div class="quality-value">{{ quality }}%</div>
           </div>
           <div class="quality-slider-wrapper">
             <el-slider
@@ -392,7 +414,9 @@ async function down() {
           <div class="stats-info">
             <div class="size-info">
               <span class="size-label">Size</span>
-              <span class="stat-mini">{{ originSize }}MB → {{ compressSize }}MB</span>
+              <span class="stat-mini"
+                >{{ originSize }}MB → {{ compressSize }}MB</span
+              >
             </div>
             <div class="savings-badge">
               <span class="saved-mini">-{{ rate }}%</span>
@@ -404,7 +428,8 @@ async function down() {
 
         <div v-if="newbase" class="toolbar-section download-section">
           <button
-            class="download-btn-new" :class="[{ downloading }]"
+            class="download-btn-new"
+            :class="[{ downloading }]"
             :disabled="downloading"
             title="Download Compressed Image"
             @click="down"
@@ -418,7 +443,9 @@ async function down() {
                   <Loading />
                 </el-icon>
               </div>
-              <span class="download-text">{{ downloading ? 'Downloading...' : 'Download' }}</span>
+              <span class="download-text">{{
+                downloading ? 'Downloading...' : 'Download'
+              }}</span>
             </div>
           </button>
         </div>
@@ -442,38 +469,46 @@ async function down() {
             class="comparison-slider-fullscreen"
             value="50"
           >
-            <template #first>
-              <img
-
-                :src="oldbase"
-                alt="Original Image"
-                class="comparison-image-fullscreen"
-                loading="eager"
-                decoding="sync"
-                style="opacity: 1; visibility: visible; transition: none; animation: none; filter: none;"
-                @load="console.log('原图加载完成')"
-                @error="console.error('原图加载失败')"
-              >
-            </template>
-            <template #second>
-              <img
-
-                :src="newbase"
-                alt="Compressed Image"
-                class="comparison-image-fullscreen"
-                loading="eager"
-                decoding="sync"
-                style="opacity: 1; visibility: visible; transition: none; animation: none; filter: none;"
-                @load="console.log('压缩图加载完成')"
-                @error="console.error('压缩图加载失败')"
-              >
-            </template>
+            <img
+              slot="first"
+              :src="oldbase"
+              alt="Original Image"
+              class="comparison-image-fullscreen"
+              loading="eager"
+              decoding="sync"
+              style="
+                opacity: 1;
+                visibility: visible;
+                transition: none;
+                animation: none;
+                filter: none;
+              "
+              @load="console.log('原图加载完成')"
+              @error="console.error('原图加载失败')"
+            />
+            <img
+              slot="second"
+              :src="newbase"
+              alt="Compressed Image"
+              class="comparison-image-fullscreen"
+              loading="eager"
+              decoding="sync"
+              style="
+                opacity: 1;
+                visibility: visible;
+                transition: none;
+                animation: none;
+                filter: none;
+              "
+              @load="console.log('压缩图加载完成')"
+              @error="console.error('压缩图加载失败')"
+            />
           </img-comparison-slider>
         </div>
       </section>
     </main>
 
-    <input id="file" ref="fileRef" type="file" accept="image/*" hidden>
+    <input id="file" ref="fileRef" type="file" accept="image/*" hidden />
   </div>
 </template>
 
@@ -481,7 +516,8 @@ async function down() {
 .app-container {
   height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   position: relative;
   overflow: hidden;
   /* 优化滚动性能 */
@@ -534,8 +570,12 @@ async function down() {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Background Decoration */
@@ -552,7 +592,11 @@ async function down() {
 .bg-circle {
   position: absolute;
   border-radius: 50%;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05)
+  );
   animation: float 6s ease-in-out infinite;
 }
 
@@ -581,9 +625,16 @@ async function down() {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-20px) rotate(120deg); }
-  66% { transform: translateY(10px) rotate(240deg); }
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-20px) rotate(120deg);
+  }
+  66% {
+    transform: translateY(10px) rotate(240deg);
+  }
 }
 
 /* Loading Overlay */
@@ -593,7 +644,11 @@ async function down() {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.95),
+    rgba(118, 75, 162, 0.95)
+  );
   backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
@@ -713,7 +768,9 @@ async function down() {
   border-radius: 16px;
   padding: 12px 16px;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -731,7 +788,12 @@ async function down() {
 .toolbar-divider {
   width: 1px;
   height: 32px;
-  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1), transparent);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 0, 0, 0.1),
+    transparent
+  );
   margin: 0 6px;
 }
 
@@ -790,7 +852,12 @@ async function down() {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -942,7 +1009,11 @@ async function down() {
   font-size: 11px;
   color: #16a34a;
   font-weight: 700;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.2));
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.1),
+    rgba(34, 197, 94, 0.2)
+  );
   padding: 4px 8px;
   border-radius: 12px;
   border: 1px solid rgba(34, 197, 94, 0.2);
@@ -975,7 +1046,12 @@ async function down() {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.6s;
 }
 
@@ -1168,7 +1244,12 @@ async function down() {
   .toolbar-divider {
     width: 100%;
     height: 1px;
-    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(0, 0, 0, 0.1),
+      transparent
+    );
     margin: 0;
   }
 

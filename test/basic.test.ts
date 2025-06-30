@@ -10,7 +10,7 @@ function createTestFile(type: string = 'image/jpeg'): File {
   for (let i = 0; i < view.length; i++) {
     view[i] = i % 256
   }
-  
+
   const blob = new Blob([buffer], { type })
   return new File([blob], 'test.jpg', { type })
 }
@@ -41,7 +41,7 @@ describe('compress function', () => {
       const result2 = await compress(file, 0.6, 'file')
       const result3 = await compress(file, 0.6, 'base64')
       const result4 = await compress(file, 0.6, 'arrayBuffer')
-      
+
       // 在浏览器环境中这些应该成功
       expect(result1).toBeDefined()
       expect(result2).toBeDefined()

@@ -31,13 +31,13 @@
 
 ## 🏆 为什么选择我们？
 
-| 特性 | 我们 | 其他库 |
-|------|------|--------|
-| 多输出格式 | ✅ | ❌ |
-| TypeScript 支持 | ✅ | 部分 |
-| GIF 压缩 | ✅ | 很少 |
-| 零配置使用 | ✅ | ❌ |
-| 文档完善 | ✅ | 一般 |
+| 特性            | 我们 | 其他库 |
+| --------------- | ---- | ------ |
+| 多输出格式      | ✅   | ❌     |
+| TypeScript 支持 | ✅   | 部分   |
+| GIF 压缩        | ✅   | 很少   |
+| 零配置使用      | ✅   | ❌     |
+| 文档完善        | ✅   | 一般   |
 
 ## 📦 安装
 
@@ -55,6 +55,7 @@ pnpm add @simon_he/browser-compress-image
 ## 🚀 快速开始
 
 ### 基础用法
+
 ```typescript
 import { compress } from '@simon_he/browser-compress-image'
 
@@ -64,6 +65,7 @@ console.log('压缩完成！', compressedBlob)
 ```
 
 ### 🎨 多种输出格式
+
 ```typescript
 // 🔹 返回 Blob (默认)
 const blob = await compress(file, 0.6, 'blob')
@@ -81,27 +83,29 @@ const arrayBuffer = await compress(file, 0.6, 'arrayBuffer')
 ### 🎯 实际应用场景
 
 #### 📸 上传前压缩
+
 ```typescript
 const handleUpload = async (file: File) => {
   // 压缩为 File 对象，保留原文件名
   const compressedFile = await compress(file, 0.7, 'file')
-  
+
   const formData = new FormData()
   formData.append('image', compressedFile)
-  
+
   await fetch('/api/upload', {
     method: 'POST',
-    body: formData
+    body: formData,
   })
 }
 ```
 
 #### 🖼️ 图片预览
+
 ```typescript
 const showPreview = async (file: File) => {
   // 压缩为 Base64，直接显示
   const base64 = await compress(file, 0.6, 'base64')
-  
+
   const img = document.createElement('img')
   img.src = base64
   document.body.appendChild(img)
@@ -109,11 +113,12 @@ const showPreview = async (file: File) => {
 ```
 
 #### 💾 数据处理
+
 ```typescript
 const processImageData = async (file: File) => {
   // 压缩为 ArrayBuffer，进行二进制处理
   const buffer = await compress(file, 0.8, 'arrayBuffer')
-  
+
   // 发送到 WebSocket 或进行其他二进制操作
   websocket.send(buffer)
 }
@@ -133,40 +138,40 @@ compress<T extends CompressResultType = 'blob'>(
 
 #### 📋 参数说明
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `file` | `File` | - | 要压缩的图片文件 |
-| `quality` | `number` | `0.6` | 压缩质量，范围 0-1，值越小文件越小 |
-| `type` | `CompressResultType` | `'blob'` | 输出格式类型 |
+| 参数      | 类型                 | 默认值   | 说明                               |
+| --------- | -------------------- | -------- | ---------------------------------- |
+| `file`    | `File`               | -        | 要压缩的图片文件                   |
+| `quality` | `number`             | `0.6`    | 压缩质量，范围 0-1，值越小文件越小 |
+| `type`    | `CompressResultType` | `'blob'` | 输出格式类型                       |
 
 #### 🎯 支持的输出格式
 
-| 格式 | 类型 | 说明 | 使用场景 |
-|------|------|------|----------|
-| `'blob'` | `Blob` | 二进制对象 | 文件上传、存储 |
-| `'file'` | `File` | 文件对象，保留文件名 | 表单提交、文件系统 |
-| `'base64'` | `string` | Base64 编码字符串 | 图片显示、数据传输 |
-| `'arrayBuffer'` | `ArrayBuffer` | 二进制数据缓冲区 | WebSocket、底层处理 |
+| 格式            | 类型          | 说明                 | 使用场景            |
+| --------------- | ------------- | -------------------- | ------------------- |
+| `'blob'`        | `Blob`        | 二进制对象           | 文件上传、存储      |
+| `'file'`        | `File`        | 文件对象，保留文件名 | 表单提交、文件系统  |
+| `'base64'`      | `string`      | Base64 编码字符串    | 图片显示、数据传输  |
+| `'arrayBuffer'` | `ArrayBuffer` | 二进制数据缓冲区     | WebSocket、底层处理 |
 
 #### 🖼️ 支持的图片格式
 
 - **JPEG** (.jpg, .jpeg) - 使用 browser-image-compression
-- **PNG** (.png) - 使用 browser-image-compression  
+- **PNG** (.png) - 使用 browser-image-compression
 - **GIF** (.gif) - 使用 gifsicle-wasm-browser
 - **其他格式** - 使用 compressorjs
 
 ### TypeScript 类型支持
 
 ```typescript
-import type { 
-  CompressResultType, 
-  CompressResult 
+import type {
+  CompressResultType,
+  CompressResult,
 } from '@simon_he/browser-compress-image'
 
 // 类型会根据第三个参数自动推断
-const blob = await compress(file, 0.6, 'blob')      // 类型: Blob
-const file2 = await compress(file, 0.6, 'file')     // 类型: File
-const base64 = await compress(file, 0.6, 'base64')  // 类型: string
+const blob = await compress(file, 0.6, 'blob') // 类型: Blob
+const file2 = await compress(file, 0.6, 'file') // 类型: File
+const base64 = await compress(file, 0.6, 'base64') // 类型: string
 const buffer = await compress(file, 0.6, 'arrayBuffer') // 类型: ArrayBuffer
 ```
 
