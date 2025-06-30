@@ -1270,6 +1270,7 @@ async function down() {
 
   .comparison-container-fullscreen {
     max-height: 70vh;
+    display: flex;
   }
 }
 
