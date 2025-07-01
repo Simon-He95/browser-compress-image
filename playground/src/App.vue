@@ -53,23 +53,24 @@ const totalCompressedSize = computed(() =>
   imageItems.value.reduce((sum, item) => sum + (item.compressedSize || 0), 0),
 )
 const totalCompressionRatio = computed(() => {
-  if (totalOriginalSize.value === 0) return 0
+  if (totalOriginalSize.value === 0)
+    return 0
   return (
-    ((totalOriginalSize.value - totalCompressedSize.value) /
-      totalOriginalSize.value) *
-    100
+    ((totalOriginalSize.value - totalCompressedSize.value)
+      / totalOriginalSize.value)
+    * 100
   )
 })
 const compressedCount = computed(
   () =>
     imageItems.value.filter(
-      (item) => item.compressedUrl && !item.compressionError,
+      item => item.compressedUrl && !item.compressionError,
     ).length,
 )
 const allCompressed = computed(
   () =>
-    imageItems.value.length > 0 &&
-    compressedCount.value === imageItems.value.length,
+    imageItems.value.length > 0
+    && compressedCount.value === imageItems.value.length,
 )
 
 // 注册事件监听器
@@ -109,9 +110,9 @@ function handleDragEnter(e: DragEvent) {
   if (e.dataTransfer?.items) {
     // 检查是否包含图片文件或文件夹
     const hasImageOrFolder = Array.from(e.dataTransfer.items).some(
-      (item) =>
-        (item.kind === 'file' && item.type.startsWith('image/')) ||
-        (item.kind === 'file' && item.type === ''),
+      item =>
+        (item.kind === 'file' && item.type.startsWith('image/'))
+        || (item.kind === 'file' && item.type === ''),
     )
     if (hasImageOrFolder) {
       isDragOver.value = true
@@ -123,8 +124,8 @@ function handleDragLeave(e: DragEvent) {
   e.preventDefault()
   // 只有当离开整个应用区域时才设置为false
   if (
-    !e.relatedTarget ||
-    !document.querySelector('.app-container')?.contains(e.relatedTarget as Node)
+    !e.relatedTarget
+    || !document.querySelector('.app-container')?.contains(e.relatedTarget as Node)
   ) {
     isDragOver.value = false
   }
@@ -153,7 +154,7 @@ async function handleDrop(e: DragEvent) {
       console.log(
         'extractFilesFromDataTransfer 结果:',
         files.length,
-        files.map((f) => f.name),
+        files.map(f => f.name),
       )
     }
 
@@ -164,7 +165,7 @@ async function handleDrop(e: DragEvent) {
       console.log(
         '传统 API 结果:',
         files.length,
-        files.map((f) => f.name),
+        files.map(f => f.name),
       )
     }
 
@@ -177,11 +178,11 @@ async function handleDrop(e: DragEvent) {
       return
     }
 
-    const imageFiles = files.filter((file) => supportType.includes(file.type))
+    const imageFiles = files.filter(file => supportType.includes(file.type))
     console.log(
       '过滤后的图片文件:',
       imageFiles.length,
-      imageFiles.map((f) => f.name),
+      imageFiles.map(f => f.name),
     )
 
     if (imageFiles.length === 0) {
@@ -199,13 +200,15 @@ async function handleDrop(e: DragEvent) {
       message: `Successfully loaded ${imageFiles.length} image(s)`,
       type: 'success',
     })
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Error processing dropped files:', error)
     ElMessage({
       message: 'Error processing files. Please try again.',
       type: 'error',
     })
-  } finally {
+  }
+  finally {
     loading.value = false
   }
 }
@@ -234,19 +237,21 @@ async function extractFilesFromDataTransfer(
             console.log(
               `Item ${i} processEntry 完成，文件数:`,
               itemFiles.length,
-              itemFiles.map((f) => f.name),
+              itemFiles.map(f => f.name),
             )
             return itemFiles
           }),
         )
-      } else {
+      }
+      else {
         // 回退到传统文件API - 当webkitGetAsEntry返回null时
         console.log(`Item ${i} 回退到 getAsFile`)
         const file = item.getAsFile()
         if (file) {
           console.log(`Item ${i} getAsFile 成功:`, file.name)
           promises.push(Promise.resolve([file]))
-        } else {
+        }
+        else {
           console.log(`Item ${i} getAsFile 失败`)
           promises.push(Promise.resolve([]))
         }
@@ -262,7 +267,7 @@ async function extractFilesFromDataTransfer(
     'extractFilesFromDataTransfer 完成，总共',
     files.length,
     '个文件:',
-    files.map((f) => f.name),
+    files.map(f => f.name),
   )
   return files
 }
@@ -290,10 +295,12 @@ async function processEntry(
       console.log('成功获取文件:', file.name, file.size, file.type)
       files.push(file)
       console.log('当前文件数组长度:', files.length)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('获取文件失败:', fileEntry.name, error)
     }
-  } else if (entry.isDirectory) {
+  }
+  else if (entry.isDirectory) {
     console.log('处理目录:', entry.name)
     const dirEntry = entry as FileSystemDirectoryEntry
     const reader = dirEntry.createReader()
@@ -317,7 +324,7 @@ async function handleFileInputChange() {
     loading.value = true
 
     try {
-      const imageFiles = selectedFiles.filter((file) =>
+      const imageFiles = selectedFiles.filter(file =>
         supportType.includes(file.type),
       )
       await addNewImages(imageFiles)
@@ -326,7 +333,8 @@ async function handleFileInputChange() {
         message: `Successfully loaded ${imageFiles.length} image(s)`,
         type: 'success',
       })
-    } finally {
+    }
+    finally {
       loading.value = false
     }
   }
@@ -334,7 +342,7 @@ async function handleFileInputChange() {
 
 // 添加新图片到列表
 async function addNewImages(files: File[]) {
-  const newItems: ImageItem[] = files.map((file) => ({
+  const newItems: ImageItem[] = files.map(file => ({
     id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     file,
     originalUrl: URL.createObjectURL(file),
@@ -351,8 +359,20 @@ async function addNewImages(files: File[]) {
 
 // 压缩单个图片
 async function compressImage(item: ImageItem): Promise<void> {
-  if (item.isCompressing) return
-
+  if (item.isCompressing)
+    return
+  // 格式化文件大小，自动切换 MB/KB 单位
+  function formatSize(size: number) {
+    if (size >= 1024 * 1024) {
+      return `${(size / 1024 / 1024).toFixed(2)}MB`
+    }
+    else if (size >= 1024) {
+      return `${(size / 1024).toFixed(2)}KB`
+    }
+    else {
+      return `${size}B`
+    }
+  }
   item.isCompressing = true
   item.compressionError = undefined
 
@@ -363,7 +383,11 @@ async function compressImage(item: ImageItem): Promise<void> {
     })
 
     if (!compressedBlob) {
-      throw new Error('Compression failed - size too large')
+      ElMessage({
+        message: 'size is too large',
+        type: 'error',
+      })
+      return
     }
 
     if (item.compressedUrl) {
@@ -372,18 +396,20 @@ async function compressImage(item: ImageItem): Promise<void> {
 
     item.compressedUrl = URL.createObjectURL(compressedBlob)
     item.compressedSize = compressedBlob.size
-    item.compressionRatio =
-      ((item.originalSize - compressedBlob.size) / item.originalSize) * 100
+    item.compressionRatio
+      = ((item.originalSize - compressedBlob.size) / item.originalSize) * 100
 
     // 为当前图片优化渲染性能
     nextTick(() => {
       optimizeImageRendering()
     })
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Compression error:', error)
-    item.compressionError =
-      error instanceof Error ? error.message : 'Compression failed'
-  } finally {
+    item.compressionError
+      = error instanceof Error ? error.message : 'Compression failed'
+  }
+  finally {
     item.isCompressing = false
   }
 }
@@ -397,9 +423,10 @@ async function compressImages(items: ImageItem[] = imageItems.value) {
     const batchSize = 3
     for (let i = 0; i < items.length; i += batchSize) {
       const batch = items.slice(i, i + batchSize)
-      await Promise.all(batch.map((item) => compressImage(item)))
+      await Promise.all(batch.map(item => compressImage(item)))
     }
-  } finally {
+  }
+  finally {
     isCompressingAll.value = false
   }
 }
@@ -493,15 +520,16 @@ function uploadImages() {
 
 // 下载单个图片
 async function downloadImage(item: ImageItem) {
-  if (!item.compressedUrl) return
+  if (!item.compressedUrl)
+    return
 
   try {
     const originalName = item.file.name
     const lastDotIndex = originalName.lastIndexOf('.')
-    const nameWithoutExt =
-      lastDotIndex > 0 ? originalName.substring(0, lastDotIndex) : originalName
-    const extension =
-      lastDotIndex > 0 ? originalName.substring(lastDotIndex) : ''
+    const nameWithoutExt
+      = lastDotIndex > 0 ? originalName.substring(0, lastDotIndex) : originalName
+    const extension
+      = lastDotIndex > 0 ? originalName.substring(lastDotIndex) : ''
     const compressedFileName = `${nameWithoutExt}_compressed${extension}`
 
     download(item.compressedUrl, compressedFileName)
@@ -511,7 +539,8 @@ async function downloadImage(item: ImageItem) {
       type: 'success',
       duration: 2000,
     })
-  } catch (error) {
+  }
+  catch (error) {
     ElMessage({
       message: 'Download failed. Please try again.',
       type: 'error',
@@ -521,10 +550,11 @@ async function downloadImage(item: ImageItem) {
 
 // 批量下载所有图片
 async function downloadAllImages() {
-  if (downloading.value) return
+  if (downloading.value)
+    return
 
   const downloadableItems = imageItems.value.filter(
-    (item) => item.compressedUrl && !item.compressionError,
+    item => item.compressedUrl && !item.compressionError,
   )
   if (downloadableItems.length === 0) {
     ElMessage({
@@ -538,12 +568,12 @@ async function downloadAllImages() {
 
   try {
     // 添加延迟显示加载状态
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    await new Promise(resolve => setTimeout(resolve, 300))
 
     for (const item of downloadableItems) {
       await downloadImage(item)
       // 添加小延迟避免浏览器下载限制
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 100))
     }
 
     ElMessage({
@@ -565,19 +595,22 @@ async function downloadAllImages() {
       type: 'success',
       duration: 4000,
     })
-  } catch (error) {
+  }
+  catch (error) {
     ElMessage({
       message: 'Batch download failed. Please try again.',
       type: 'error',
     })
-  } finally {
+  }
+  finally {
     downloading.value = false
   }
 }
 
 // 格式化文件大小
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes'
+  if (bytes === 0)
+    return '0 Bytes'
   const k = 1024
   const sizes = ['Bytes', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
@@ -598,7 +631,9 @@ function setCurrentImage(index: number) {
         <el-icon class="drag-icon">
           <FolderOpened />
         </el-icon>
-        <div class="drag-text">Drop images or folders here</div>
+        <div class="drag-text">
+          Drop images or folders here
+        </div>
         <div class="drag-subtitle">
           Support multiple images and folder drag & drop
         </div>
@@ -663,11 +698,11 @@ function setCurrentImage(index: number) {
       <div v-if="hasImages" class="floating-toolbar">
         <div class="toolbar-section files-section">
           <div class="files-info">
-            <div class="files-icon">📷</div>
+            <div class="files-icon">
+              📷
+            </div>
             <span class="files-count">{{ imageItems.length }} image(s)</span>
-            <span class="compressed-count"
-              >({{ compressedCount }} compressed)</span
-            >
+            <span class="compressed-count">({{ compressedCount }} compressed)</span>
           </div>
 
           <div class="action-buttons">
@@ -705,14 +740,10 @@ function setCurrentImage(index: number) {
           class="toolbar-section stats-section"
         >
           <div class="stats-info">
-            <span class="size-label"
-              >Total: {{ formatFileSize(totalOriginalSize) }} →
-              {{ formatFileSize(totalCompressedSize) }}</span
-            >
+            <span class="size-label">Total: {{ formatFileSize(totalOriginalSize) }} →
+              {{ formatFileSize(totalCompressedSize) }}</span>
             <div class="savings-badge">
-              <span class="saved-mini"
-                >-{{ totalCompressionRatio.toFixed(1) }}%</span
-              >
+              <span class="saved-mini">-{{ totalCompressionRatio.toFixed(1) }}%</span>
             </div>
           </div>
         </div>
@@ -764,7 +795,7 @@ function setCurrentImage(index: number) {
                 style="object-fit: contain"
                 :src="item.originalUrl"
                 :alt="item.file.name"
-              />
+              >
               <div v-if="item.isCompressing" class="compressing-overlay">
                 <el-icon class="is-loading">
                   <Loading />
@@ -791,9 +822,7 @@ function setCurrentImage(index: number) {
               </div>
               <!-- 独立的质量控制 -->
               <div class="image-quality-control">
-                <span class="quality-label-small"
-                  >Quality: {{ item.quality }}%</span
-                >
+                <span class="quality-label-small">Quality: {{ item.quality }}%</span>
                 <el-slider
                   v-model="item.quality"
                   :max="100"
@@ -917,18 +946,22 @@ function setCurrentImage(index: number) {
                 :src="currentImage.originalUrl"
                 :alt="currentImage.file.name"
                 class="single-image"
-              />
+              >
               <div v-if="currentImage.isCompressing" class="preview-overlay">
                 <el-icon class="is-loading" size="30px">
                   <Loading />
                 </el-icon>
-                <div class="overlay-text">Compressing...</div>
+                <div class="overlay-text">
+                  Compressing...
+                </div>
               </div>
               <div
                 v-if="currentImage.compressionError"
                 class="preview-overlay error"
               >
-                <div class="overlay-text">Compression Error</div>
+                <div class="overlay-text">
+                  Compression Error
+                </div>
                 <div class="overlay-subtext">
                   {{ currentImage.compressionError }}
                 </div>
@@ -941,9 +974,7 @@ function setCurrentImage(index: number) {
                 {{ currentImage.file.name }}
               </div>
               <div class="image-details">
-                <span
-                  >{{ currentImageIndex + 1 }} / {{ imageItems.length }}</span
-                >
+                <span>{{ currentImageIndex + 1 }} / {{ imageItems.length }}</span>
                 <span>Quality: {{ currentImage.quality }}%</span>
                 <span>{{ formatFileSize(currentImage.originalSize) }}</span>
                 <span v-if="currentImage.compressedSize">
@@ -966,7 +997,7 @@ function setCurrentImage(index: number) {
       accept="image/*"
       multiple
       hidden
-    />
+    >
   </div>
 </template>
 
