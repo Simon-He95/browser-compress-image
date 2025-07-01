@@ -704,9 +704,7 @@ function setCurrentImage(index: number) {
 
         <div class="toolbar-divider" />
 
-        <div
-          class="toolbar-section stats-section"
-        >
+        <div class="toolbar-section stats-section">
           <div class="stats-info">
             <span class="size-label"
               >Total: {{ formatFileSize(totalOriginalSize) }} →
@@ -786,7 +784,7 @@ function setCurrentImage(index: number) {
                   formatFileSize(item.originalSize)
                 }}</span>
                 <span class="compressed-size">
-                  → {{ formatFileSize(item.compressedSize||0) }}
+                  → {{ formatFileSize(item.compressedSize || 0) }}
                 </span>
                 <span class="ratio">
                   (-{{ item.compressionRatio?.toFixed(1) }}%)
@@ -800,11 +798,12 @@ function setCurrentImage(index: number) {
                 <el-slider
                   v-model="item.quality"
                   :max="100"
-                  :step="5"
+                  :step="1"
+                  :min="1"
                   class="image-quality-slider"
                   :show-tooltip="false"
                   size="small"
-                  @change="(val:number) => handleImageQualityChange(item, val)"
+                  @change="(val: number) => handleImageQualityChange(item, val)"
                 />
               </div>
             </div>
@@ -1460,9 +1459,23 @@ function setCurrentImage(index: number) {
 
 .mini-slider {
   --el-slider-height: 5px;
-  --el-slider-button-size: 14px;
+  --el-slider-button-size: 16px;
   --el-slider-main-bg-color: linear-gradient(135deg, #4f46e5, #7c3aed);
   --el-slider-runway-bg-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 工具栏滑块按钮样式 */
+.mini-slider :deep(.el-slider__button) {
+  background: #4f46e5;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+}
+
+.mini-slider :deep(.el-slider__button:hover) {
+  background: #6366f1;
+  border-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+  transform: scale(1.1);
 }
 
 /* 统计信息区域 */
@@ -2011,6 +2024,14 @@ img-comparison-slider img {
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+:deep(.image-quality-control .el-slider__button-wrapper) {
+  top: 50%;
+  transform: translateY(-50%) translateX(-50%);
 }
 
 .quality-label-small {
@@ -2025,9 +2046,25 @@ img-comparison-slider img {
 
 .image-quality-slider {
   --el-slider-height: 3px;
-  --el-slider-button-size: 10px;
+  --el-slider-button-size: 12px;
   --el-slider-main-bg-color: linear-gradient(135deg, #4f46e5, #7c3aed);
   --el-slider-runway-bg-color: rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 120px;
+}
+
+/* 自定义滑块按钮样式 */
+.image-quality-slider :deep(.el-slider__button) {
+  background: #4f46e5;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+}
+
+.image-quality-slider :deep(.el-slider__button:hover) {
+  background: #6366f1;
+  border-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  transform: scale(1.1);
 }
 
 .original-size {
@@ -2169,7 +2206,9 @@ img-comparison-slider img {
   color: white;
   padding: 20px;
   backdrop-filter: blur(10px);
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
   pointer-events: none;
 }
 
