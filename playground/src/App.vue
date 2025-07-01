@@ -81,6 +81,9 @@ onMounted(() => {
   document.addEventListener('drop', handleDrop)
   document.addEventListener('dragenter', handleDragEnter)
   document.addEventListener('dragleave', handleDragLeave)
+
+  // 添加粘贴事件监听
+  document.addEventListener('paste', handlePaste)
 })
 
 onUnmounted(() => {
@@ -89,6 +92,7 @@ onUnmounted(() => {
   document.removeEventListener('drop', handleDrop)
   document.removeEventListener('dragenter', handleDragEnter)
   document.removeEventListener('dragleave', handleDragLeave)
+  document.removeEventListener('paste', handlePaste)
 
   // 清理对象URL
   imageItems.value.forEach((item) => {
@@ -210,11 +214,99 @@ async function handleDrop(e: DragEvent) {
   }
 }
 
+// 粘贴事件处理
+async function handlePaste(e: ClipboardEvent) {
+  e.preventDefault()
+
+  const items = e.clipboardData?.items
+  if (!items || items.length === 0) {
+    return
+  }
+
+  console.log('=== Paste Event Debug ===')
+  console.log('clipboardData.items:', items)
+  console.log('items length:', items.length)
+
+  loading.value = true
+
+  try {
+    let files: File[] = []
+
+    // 首先尝试使用 webkitGetAsEntry API（支持文件夹）
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      console.log(`处理剪贴板 Item ${i}:`, { kind: item.kind, type: item.type })
+
+      if (item.kind === 'file') {
+        // 尝试使用 webkitGetAsEntry 获取文件系统入口
+        const entry = item.webkitGetAsEntry?.()
+        console.log(`Item ${i} webkitGetAsEntry:`, entry)
+
+        if (entry) {
+          console.log(`Item ${i} 使用 processEntry`)
+          const itemFiles: File[] = []
+          await processEntry(entry, itemFiles)
+          console.log(
+            `Item ${i} processEntry 完成，文件数:`,
+            itemFiles.length,
+            itemFiles.map((f) => f.name),
+          )
+          files.push(...itemFiles)
+        } else {
+          // 回退到传统文件API
+          console.log(`Item ${i} 回退到 getAsFile`)
+          const file = item.getAsFile()
+          if (file) {
+            console.log(`剪贴板文件 ${i}:`, file.name, file.type, file.size)
+            files.push(file)
+          }
+        }
+      }
+    }
+
+    // 过滤图片文件
+    const imageFiles = files.filter((file) => supportType.includes(file.type))
+    console.log(
+      '剪贴板过滤后的图片文件:',
+      imageFiles.length,
+      imageFiles.map((f) => f.name),
+    )
+
+    if (imageFiles.length === 0) {
+      console.log('剪贴板中没有找到图片文件')
+      return // 静默处理，不显示错误消息
+    }
+
+    await addNewImages(imageFiles)
+
+    ElMessage({
+      message: `Successfully pasted ${imageFiles.length} image(s)`,
+      type: 'success',
+    })
+  } catch (error) {
+    console.error('Error processing pasted files:', error)
+    ElMessage({
+      message: 'Error processing pasted files. Please try again.',
+      type: 'error',
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
 // 从DataTransfer中提取所有文件（包括文件夹中的文件）
 async function extractFilesFromDataTransfer(
   items: DataTransferItemList,
 ): Promise<File[]> {
   console.log('extractFilesFromDataTransfer 开始处理', items.length, '个 items')
+  return await extractFilesFromItems(items)
+}
+
+// 通用的文件提取函数，支持拖拽和粘贴
+async function extractFilesFromItems(
+  items: DataTransferItemList,
+): Promise<File[]> {
+  console.log('extractFilesFromItems 开始处理', items.length, '个 items')
 
   const promises: Promise<File[]>[] = []
 
@@ -223,7 +315,7 @@ async function extractFilesFromDataTransfer(
     console.log(`处理 Item ${i}:`, { kind: item.kind, type: item.type })
 
     if (item.kind === 'file') {
-      const entry = item.webkitGetAsEntry()
+      const entry = item.webkitGetAsEntry?.()
       console.log(`Item ${i} webkitGetAsEntry:`, entry)
 
       if (entry) {
@@ -259,7 +351,7 @@ async function extractFilesFromDataTransfer(
   const files = allFileArrays.flat()
 
   console.log(
-    'extractFilesFromDataTransfer 完成，总共',
+    'extractFilesFromItems 完成，总共',
     files.length,
     '个文件:',
     files.map((f) => f.name),
@@ -604,7 +696,8 @@ function setCurrentImage(index: number) {
         </el-icon>
         <div class="drag-text">Drop images or folders here</div>
         <div class="drag-subtitle">
-          Support multiple images and folder drag & drop
+          Support multiple images and folder drag & drop • Or use Ctrl+V to
+          paste
         </div>
       </div>
     </div>
@@ -655,10 +748,10 @@ function setCurrentImage(index: number) {
           <el-icon class="upload-icon">
             <Picture />
           </el-icon>
-          <span class="upload-text">Drop or Click to Upload Images</span>
+          <span class="upload-text">Drop, Paste or Click to Upload Images</span>
           <span class="upload-hint">
             Support PNG, JPG, JPEG, GIF formats • Multiple files & folders
-            supported
+            supported • Use Ctrl+V to paste images
           </span>
         </button>
       </section>
