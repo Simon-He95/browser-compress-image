@@ -3,9 +3,25 @@ import type {
   CompressResult,
   CompressResultType,
 } from './types'
-import imageCompression from 'browser-image-compression'
+import imageCompression, { Options } from 'browser-image-compression'
 import Compressor from 'compressorjs'
 import gifsicle from 'gifsicle-wasm-browser'
+
+// 压缩工具类型定义
+type CompressorTool =
+  | 'browser-image-compression'
+  | 'compressorjs'
+  | 'gifsicle'
+  | 'canvas'
+
+// 压缩结果接口
+interface CompressionAttempt {
+  tool: CompressorTool
+  blob: Blob
+  size: number
+  success: boolean
+  error?: string
+}
 
 // 辅助函数：将 Blob 转换为不同格式
 async function convertBlobToType<T extends CompressResultType>(
@@ -78,31 +94,43 @@ export async function compress<T extends CompressResultType = 'blob'>(
     type: resultType = 'blob' as T,
   } = options
 
-  // 根据文件类型和模式进行压缩
+  // 使用多工具压缩比对策略
+  const compressionOptions = {
+    quality,
+    mode,
+    targetWidth,
+    targetHeight,
+    maxWidth,
+    maxHeight,
+  }
+
+  let bestResult: Blob
+
+  // 根据文件类型选择合适的压缩工具组合
   if (file.type.includes('png')) {
-    return compressPNG(
-      file,
-      { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight },
-      resultType,
-    )
+    bestResult = await compressWithMultipleTools(file, compressionOptions, [
+      'browser-image-compression',
+      'canvas',
+    ])
   } else if (file.type.includes('gif')) {
-    return compressGIF(
-      file,
-      { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight },
-      resultType,
-    )
+    bestResult = await compressWithMultipleTools(file, compressionOptions, [
+      'gifsicle',
+      'browser-image-compression',
+    ])
   } else {
     // JPEG 和其他格式
-    return compressJPEG(
-      file,
-      { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight },
-      resultType,
-    )
+    bestResult = await compressWithMultipleTools(file, compressionOptions, [
+      'browser-image-compression',
+      'compressorjs',
+      'canvas',
+    ])
   }
+
+  return convertBlobToType(bestResult, resultType, file.name)
 }
 
-// PNG 压缩函数
-async function compressPNG<T extends CompressResultType>(
+// 多工具压缩比对核心函数
+async function compressWithMultipleTools(
   file: File,
   options: {
     quality: number
@@ -112,80 +140,125 @@ async function compressPNG<T extends CompressResultType>(
     maxWidth?: number
     maxHeight?: number
   },
-  resultType: T,
-): Promise<CompressResult<T>> {
+  tools: CompressorTool[],
+): Promise<Blob> {
+  const attempts: CompressionAttempt[] = []
+
+  // 并行运行所有压缩工具
+  const promises = tools.map(async (tool) => {
+    try {
+      let compressedBlob: Blob
+
+      switch (tool) {
+        case 'browser-image-compression':
+          compressedBlob = await compressWithBrowserImageCompression(
+            file,
+            options,
+          )
+          break
+        case 'compressorjs':
+          compressedBlob = await compressWithCompressorJS(file, options)
+          break
+        case 'gifsicle':
+          compressedBlob = await compressWithGifsicle(file, options)
+          break
+        case 'canvas':
+          compressedBlob = await compressWithCanvas(file, options)
+          break
+        default:
+          throw new Error(`Unknown compression tool: ${tool}`)
+      }
+
+      return {
+        tool,
+        blob: compressedBlob,
+        size: compressedBlob.size,
+        success: true,
+      } as CompressionAttempt
+    } catch (error) {
+      return {
+        tool,
+        blob: file, // 失败时使用原文件
+        size: file.size,
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      } as CompressionAttempt
+    }
+  })
+
+  // 等待所有压缩尝试完成（使用 allSettled 确保即使某些工具失败也能获得其他结果）
+  const results = await Promise.allSettled(promises)
+
+  // 处理结果，包括成功和失败的情况
+  results.forEach((result) => {
+    if (result.status === 'fulfilled') {
+      attempts.push(result.value)
+    } else {
+      console.warn('Compression tool failed:', result.reason)
+    }
+  })
+
+  // 过滤成功的结果
+  const successfulAttempts = attempts.filter((attempt) => attempt.success)
+
+  if (successfulAttempts.length === 0) {
+    console.warn('All compression attempts failed, returning original file')
+    return file
+  }
+
+  // 选择文件大小最小的结果
+  const bestAttempt = successfulAttempts.reduce((best, current) =>
+    current.size < best.size ? current : best,
+  )
+
+  // 如果最佳压缩结果仍然比原文件大，且质量设置较高，返回原文件
+  if (bestAttempt.size >= file.size * 0.98 && options.quality > 0.85) {
+    console.log(
+      `Best compression (${bestAttempt.tool}) size: ${bestAttempt.size}, original: ${file.size}, using original`,
+    )
+    return file
+  }
+
+  console.log(
+    `Best compression result: ${bestAttempt.tool} (${bestAttempt.size} bytes, ${(((file.size - bestAttempt.size) / file.size) * 100).toFixed(1)}% reduction)`,
+  )
+
+  return bestAttempt.blob
+}
+
+// browser-image-compression 工具
+async function compressWithBrowserImageCompression(
+  file: File,
+  options: {
+    quality: number
+    mode: string
+    targetWidth?: number
+    targetHeight?: number
+    maxWidth?: number
+    maxHeight?: number
+  },
+): Promise<Blob> {
   const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight } =
     options
 
-  if (mode === 'keepSize') {
-    // 保持尺寸不变
-    // 对于PNG，优先使用专门的压缩库，而不是Canvas重绘
-    try {
-      const compressionOptions: any = {
-        useWebWorker: true,
-        initialQuality: quality,
-        alwaysKeepResolution: true, // PNG保持分辨率
-        exifOrientation: 1,
-        fileType: 'image/png',
-        preserveExif: true,
-        maxSizeMB: 50, // 设置较大的限制，主要依靠质量控制
-      }
-
-      const compressedFile = await imageCompression(file, compressionOptions)
-
-      // 如果压缩效果不明显且质量要求高，考虑返回原文件
-      if (compressedFile.size >= file.size * 0.95 && quality > 0.9) {
-        return convertBlobToType(file, resultType, file.name)
-      }
-
-      return convertBlobToType(compressedFile, resultType, file.name)
-    } catch (error) {
-      // 如果专门的PNG压缩失败，回退到Canvas方法
-      console.warn('PNG compression failed, falling back to Canvas:', error)
-      const { width, height } = await getImageDimensions(file)
-      const compressedBlob = await redrawImageWithExactSize(
-        file,
-        width,
-        height,
-        quality,
-      )
-
-      if (compressedBlob.size >= file.size && quality > 0.8) {
-        return convertBlobToType(file, resultType, file.name)
-      }
-
-      return convertBlobToType(compressedBlob, resultType, file.name)
-    }
-  } else {
-    // keepQuality 模式：保持质量，改变尺寸
-    const compressionOptions: any = {
-      useWebWorker: true,
-      initialQuality: 1, // 保持高质量
-      alwaysKeepResolution: false,
-      exifOrientation: 1, // 保持原始方向
-      fileType: file.type, // 保持原始文件类型
-    }
-
-    // 可选参数，避免在不支持的情况下出错
-    try {
-      compressionOptions.preserveExif = true // 保留EXIF数据
-    } catch (e) {
-      console.warn('preserveExif not supported:', e)
-    }
-
-    if (targetWidth) compressionOptions.maxWidthOrHeight = targetWidth
-    if (targetHeight && !targetWidth)
-      compressionOptions.maxWidthOrHeight = targetHeight
-    if (maxWidth) compressionOptions.maxWidth = maxWidth
-    if (maxHeight) compressionOptions.maxHeight = maxHeight
-
-    const compressedFile = await imageCompression(file, compressionOptions)
-    return convertBlobToType(compressedFile, resultType, file.name)
+  const compressionOptions: Options = {
+    useWebWorker: true,
+    initialQuality: Math.max(0.8, quality), // 保持相对高质量
+    alwaysKeepResolution: mode === 'keepSize',
+    exifOrientation: 1,
+    fileType: file.type,
+    preserveExif: true,
+    maxSizeMB: (file.size * 0.8) / (1024 * 1024), // 设置为原始文件大小的 MB
+    maxWidthOrHeight:
+      Math.min(maxWidth || targetWidth!, maxHeight || targetHeight!) ||
+      undefined,
   }
+
+  return await imageCompression(file, compressionOptions)
 }
 
-// GIF 压缩函数
-async function compressGIF<T extends CompressResultType>(
+// compressorjs 工具
+async function compressWithCompressorJS(
   file: File,
   options: {
     quality: number
@@ -195,24 +268,66 @@ async function compressGIF<T extends CompressResultType>(
     maxWidth?: number
     maxHeight?: number
   },
-  resultType: T,
-): Promise<CompressResult<T>> {
-  const { quality, mode } = options
+): Promise<Blob> {
+  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight } =
+    options
+
+  // CompressorJS 主要适用于 JPEG，对于其他格式效果有限
+  if (!file.type.includes('jpeg') && !file.type.includes('jpg')) {
+    throw new Error('CompressorJS is optimized for JPEG files')
+  }
+
+  return new Promise((resolve, reject) => {
+    const compressorOptions: any = {
+      quality,
+      checkOrientation: false,
+      mimeType: file.type,
+      success: (compressedBlob: Blob | File) => resolve(compressedBlob as Blob),
+      error: reject,
+    }
+
+    if (mode === 'keepQuality') {
+      if (targetWidth) compressorOptions.width = targetWidth
+      if (targetHeight) compressorOptions.height = targetHeight
+      if (maxWidth) compressorOptions.maxWidth = maxWidth
+      if (maxHeight) compressorOptions.maxHeight = maxHeight
+    }
+
+    // eslint-disable-next-line no-new
+    new Compressor(file, compressorOptions)
+  })
+}
+
+// gifsicle 工具
+async function compressWithGifsicle(
+  file: File,
+  options: {
+    quality: number
+    mode: string
+    targetWidth?: number
+    targetHeight?: number
+    maxWidth?: number
+    maxHeight?: number
+  },
+): Promise<Blob> {
+  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight } =
+    options
+
+  // Gifsicle 仅适用于 GIF
+  if (!file.type.includes('gif')) {
+    throw new Error('Gifsicle is only for GIF files')
+  }
 
   let command: string
   if (mode === 'keepSize') {
-    // 保持尺寸，只改变质量
     command = `
       -O1 
-      --lossy=${(1 - quality) * 100} 
+      --lossy=${Math.round((1 - quality) * 100)} 
       ${file.name} 
       -o /out/${file.name}
     `
   } else {
-    // keepQuality 模式，可以添加resize命令
-    const { targetWidth, targetHeight, maxWidth, maxHeight } = options
     let resizeOption = ''
-
     if (targetWidth && targetHeight) {
       resizeOption = `--resize ${targetWidth}x${targetHeight}`
     } else if (maxWidth || maxHeight) {
@@ -228,19 +343,44 @@ async function compressGIF<T extends CompressResultType>(
     `
   }
 
-  const compressedBlob = (
-    await gifsicle.run({
-      input: [
-        {
-          file,
-          name: file.name,
-        },
-      ],
-      command: [command],
-    })
-  )[0]
+  const result = await gifsicle.run({
+    input: [{ file, name: file.name }],
+    command: [command],
+  })
 
-  return convertBlobToType(compressedBlob, resultType, file.name)
+  return result[0]
+}
+
+// Canvas 工具
+async function compressWithCanvas(
+  file: File,
+  options: {
+    quality: number
+    mode: string
+    targetWidth?: number
+    targetHeight?: number
+    maxWidth?: number
+    maxHeight?: number
+  },
+): Promise<Blob> {
+  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight } =
+    options
+
+  let finalWidth = targetWidth || maxWidth,
+    finalHeight = targetHeight || maxHeight
+
+  if (!finalWidth && !finalHeight) {
+    const { width, height } = await getImageDimensions(file)
+    finalWidth = width
+    finalHeight = height
+  }
+
+  return await redrawImageWithExactSize(
+    file,
+    finalWidth!,
+    finalHeight!,
+    quality,
+  )
 }
 
 // 获取图片原始尺寸的辅助函数
@@ -326,7 +466,6 @@ function redrawImageWithExactSize(
 
       // 转换为 Blob，保持原始格式和用户指定的质量
       const outputType = file.type
-      const outputQuality = file.type.includes('png') ? undefined : quality // 使用用户指定的质量
 
       canvas.toBlob(
         (blob) => {
@@ -337,7 +476,7 @@ function redrawImageWithExactSize(
           }
         },
         outputType,
-        outputQuality,
+        quality,
       )
     }
 
@@ -351,64 +490,6 @@ function redrawImageWithExactSize(
     img.crossOrigin = 'anonymous'
     img.src = url
   })
-}
-
-// JPEG 压缩函数
-async function compressJPEG<T extends CompressResultType>(
-  file: File,
-  options: {
-    quality: number
-    mode: string
-    targetWidth?: number
-    targetHeight?: number
-    maxWidth?: number
-    maxHeight?: number
-  },
-  resultType: T,
-): Promise<CompressResult<T>> {
-  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight } =
-    options
-
-  if (mode === 'keepSize') {
-    // 保持尺寸不变，使用 Canvas 精确控制
-    const { width, height } = await getImageDimensions(file)
-
-    const compressedBlob = await redrawImageWithExactSize(
-      file,
-      width,
-      height,
-      quality,
-    )
-
-    // 检查压缩后的文件是否比原文件更大，如果是则返回原文件
-    if (compressedBlob.size >= file.size && quality > 0.8) {
-      return convertBlobToType(file, resultType, file.name)
-    }
-
-    return convertBlobToType(compressedBlob, resultType, file.name)
-  } else {
-    // keepQuality 模式：改变尺寸，保持质量
-    return new Promise((resolve, reject) => {
-      const compressorOptions: any = {
-        quality, // 使用传入的质量参数
-        checkOrientation: false, // 不自动旋转，保持原始状态
-        mimeType: file.type, // 保持原始MIME类型
-        success: (compressedBlob: Blob | File) =>
-          convertBlobToType(compressedBlob as Blob, resultType, file.name)
-            .then(resolve)
-            .catch(reject),
-        error: reject,
-      }
-
-      if (targetWidth) compressorOptions.width = targetWidth
-      if (targetHeight) compressorOptions.height = targetHeight
-      if (maxWidth) compressorOptions.maxWidth = maxWidth
-      if (maxHeight) compressorOptions.maxHeight = maxHeight
-
-      // eslint-disable-next-line no-new
-      new Compressor(file, compressorOptions)
-    })
-  }
 }
 
 export default compress

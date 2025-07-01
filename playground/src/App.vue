@@ -10,7 +10,7 @@ import {
 import GitForkVue from '@simon_he/git-fork-vue'
 import { ElMessage } from 'element-plus'
 import { download } from 'lazy-js-utils'
-import { h } from 'vue'
+import { h, watch } from 'vue'
 import { compress } from '../../src'
 import 'img-comparison-slider/dist/styles.css'
 
@@ -52,6 +52,7 @@ const totalOriginalSize = computed(() =>
 const totalCompressedSize = computed(() =>
   imageItems.value.reduce((sum, item) => sum + (item.compressedSize || 0), 0),
 )
+
 const totalCompressionRatio = computed(() => {
   if (totalOriginalSize.value === 0) return 0
   return (
@@ -71,7 +72,12 @@ const allCompressed = computed(
     imageItems.value.length > 0 &&
     compressedCount.value === imageItems.value.length,
 )
-
+watch(
+  () => imageItems.value,
+  (newV, oldV) => {
+    debugger
+  },
+)
 // 注册事件监听器
 onMounted(() => {
   fileRef.value!.addEventListener('change', handleFileInputChange)
@@ -434,11 +440,9 @@ async function addNewImages(files: File[]) {
     isCompressing: false,
     quality: 60, // 默认质量
   }))
-
-  imageItems.value.push(...newItems)
-
   // 自动开始压缩所有新添加的图片
   await compressImages(newItems)
+  imageItems.value.push(...newItems)
 }
 
 // 压缩单个图片
@@ -803,11 +807,9 @@ function setCurrentImage(index: number) {
               >Total: {{ formatFileSize(totalOriginalSize) }} →
               {{ formatFileSize(totalCompressedSize) }}</span
             >
-            <div class="savings-badge">
-              <span class="saved-mini"
-                >-{{ totalCompressionRatio.toFixed(1) }}%</span
-              >
-            </div>
+            <span class="saved-mini"
+              >-{{ totalCompressionRatio.toFixed(1) }}%</span
+            >
           </div>
         </div>
 
@@ -1582,6 +1584,7 @@ function setCurrentImage(index: number) {
   display: flex;
   align-items: center;
   gap: 8px;
+  height: 45px;
 }
 
 .size-label {
@@ -1589,10 +1592,6 @@ function setCurrentImage(index: number) {
   color: #374151;
   font-weight: 500;
   font-family: 'SF Mono', Monaco, 'Consolas', monospace;
-}
-
-.savings-badge {
-  align-self: flex-start;
 }
 
 .saved-mini {
@@ -2125,6 +2124,9 @@ img-comparison-slider img {
 :deep(.image-quality-control .el-slider__button-wrapper) {
   top: 50%;
   transform: translateY(-50%) translateX(-50%);
+  height: fit-content;
+  width: fit-content;
+  display: flex;
 }
 
 .quality-label-small {
