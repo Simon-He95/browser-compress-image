@@ -92,7 +92,7 @@ onMounted(() => {
   document.addEventListener('touchstart', handleTouchStart, { passive: true })
   document.addEventListener('touchend', handleTouchEnd, { passive: true })
   document.addEventListener('touchcancel', handleTouchEnd, { passive: true })
-  
+
   // 添加PC端鼠标事件监听
   document.addEventListener('mousedown', handleMouseDown)
   document.addEventListener('mouseup', handleMouseUp)
@@ -110,7 +110,7 @@ onUnmounted(() => {
   document.removeEventListener('touchstart', handleTouchStart)
   document.removeEventListener('touchend', handleTouchEnd)
   document.removeEventListener('touchcancel', handleTouchEnd)
-  
+
   // 清理PC端鼠标事件监听器
   document.removeEventListener('mousedown', handleMouseDown)
   document.removeEventListener('mouseup', handleMouseUp)
@@ -128,8 +128,10 @@ onUnmounted(() => {
 function handleTouchStart(e: TouchEvent) {
   // 检查触摸是否在图片比较滑块上
   const target = e.target as HTMLElement
-  if (target.closest('img-comparison-slider') || 
-      target.closest('.comparison-slider-fullscreen')) {
+  if (
+    target.closest('img-comparison-slider') ||
+    target.closest('.comparison-slider-fullscreen')
+  ) {
     isMobileDragging.value = true
     console.log('touch start')
   }
@@ -145,8 +147,10 @@ function handleTouchEnd(e: TouchEvent) {
 function handleMouseDown(e: MouseEvent) {
   // 检查鼠标按下是否在图片比较滑块上
   const target = e.target as HTMLElement
-  if (target.closest('img-comparison-slider') || 
-      target.closest('.comparison-slider-fullscreen')) {
+  if (
+    target.closest('img-comparison-slider') ||
+    target.closest('.comparison-slider-fullscreen')
+  ) {
     isPCDragging.value = true
     console.log('mouse down on slider')
   }
@@ -557,7 +561,6 @@ async function handleImageQualityChange(item: ImageItem, newQuality: number) {
   item.quality = newQuality
   await compressImage(item)
 }
-
 
 // 删除单个图片
 function deleteImage(index: number) {
@@ -1045,11 +1048,11 @@ function setCurrentImage(index: number) {
             </div>
 
             <!-- 图片信息覆盖层 -->
-            <div 
+            <div
               class="image-overlay-info"
-              :class="{ 
+              :class="{
                 'mobile-dragging': isMobileDragging,
-                'pc-dragging': isPCDragging
+                'pc-dragging': isPCDragging,
               }"
             >
               <div class="image-title">
@@ -2412,9 +2415,6 @@ img-comparison-slider img {
   opacity: 0;
   visibility: hidden;
 }
-
-
-
 
 .image-title {
   font-size: 16px;

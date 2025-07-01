@@ -58,7 +58,6 @@
     "play": "pnpm run -C playground dev",
     "play:build": "pnpm run -C playground build",
     "lint": "prettier --cache --write .",
-    "typecheck": "vue-tsc --noEmit",
     "test": "vitest --dir test -u",
     "ptest": "pnpm run -C playground test -u",
     "preview": "pnpm run -C playground preview",
