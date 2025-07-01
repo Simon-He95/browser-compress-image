@@ -352,16 +352,7 @@ async function addNewImages(files: File[]) {
 // 压缩单个图片
 async function compressImage(item: ImageItem): Promise<void> {
   if (item.isCompressing) return
-  // 格式化文件大小，自动切换 MB/KB 单位
-  function formatSize(size: number) {
-    if (size >= 1024 * 1024) {
-      return `${(size / 1024 / 1024).toFixed(2)}MB`
-    } else if (size >= 1024) {
-      return `${(size / 1024).toFixed(2)}KB`
-    } else {
-      return `${size}B`
-    }
-  }
+
   item.isCompressing = true
   item.compressionError = undefined
 
