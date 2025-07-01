@@ -760,7 +760,11 @@ function setCurrentImage(index: number) {
             @click="setCurrentImage(index)"
           >
             <div class="image-preview">
-              <img :src="item.originalUrl" :alt="item.file.name" />
+              <img
+                style="object-fit: contain"
+                :src="item.originalUrl"
+                :alt="item.file.name"
+              />
               <div v-if="item.isCompressing" class="compressing-overlay">
                 <el-icon class="is-loading">
                   <Loading />
