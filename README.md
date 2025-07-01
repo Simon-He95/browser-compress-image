@@ -21,21 +21,38 @@
 
 ## ✨ 特性
 
-- 🎯 **多格式支持** - JPEG、PNG、GIF 全覆盖
-- 🔄 **多输出类型** - Blob、File、Base64、ArrayBuffer 任你选择
-- 📦 **轻量级** - 体积小巧，性能优异
-- 🛡️ **TypeScript** - 完整类型支持，开发体验极佳
-- 🎨 **现代化 API** - 简洁易用的 async/await 接口
-- ⚡ **高性能** - 基于 WebWorker 的并行处理
-- 🔧 **灵活配置** - 自定义压缩质量和输出格式
+### 🎯 核心功能
+
+- **多格式支持** - JPEG、PNG、GIF、WebP 全覆盖
+- **多输出类型** - Blob、File、Base64、ArrayBuffer 任你选择
+- **多工具引擎** - 集成 CompressorJS、Canvas、browser-image-compression 等多种压缩算法
+- **智能优选** - 自动比对多工具压缩结果，选择最优质量与体积的方案
+
+### � 上传方式
+
+- **拖拽上传** - 支持单文件/多文件拖拽，PC 和移动端友好
+- **粘贴上传** - 直接 Ctrl+V 粘贴图片，快速便捷
+- **文件夹上传** - 一键选择文件夹，批量处理图片
+- **批量处理** - 同时处理多个图片文件，并行压缩
+
+### 🔧 技术特性
+
+- **轻量级** - 体积小巧，性能优异
+- **TypeScript** - 完整类型支持，开发体验极佳
+- **现代化 API** - 简洁易用的 async/await 接口
+- **高性能** - 基于 WebWorker 的并行处理
+- **灵活配置** - 自定义压缩质量和输出格式
 
 ## 🏆 为什么选择我们？
 
 | 特性            | 我们 | 其他库 |
 | --------------- | ---- | ------ |
 | 多输出格式      | ✅   | ❌     |
+| 多工具引擎比对  | ✅   | ❌     |
 | TypeScript 支持 | ✅   | 部分   |
-| GIF 压缩        | ✅   | 很少   |
+| GIF/WebP 压缩   | ✅   | 很少   |
+| 批量/粘贴上传   | ✅   | ❌     |
+| 文件夹上传      | ✅   | ❌     |
 | 零配置使用      | ✅   | ❌     |
 | 文档完善        | ✅   | 一般   |
 
@@ -64,6 +81,78 @@ const compressedBlob = await compress(file, 0.6)
 console.log('压缩完成！', compressedBlob)
 ```
 
+### 🎯 多工具压缩 - 自动选择最优结果
+
+```typescript
+import { compressWithMultipleTools } from '@simon_he/browser-compress-image'
+
+// 使用多种压缩工具并行处理，自动选择最优结果
+const result = await compressWithMultipleTools(file, {
+  quality: 0.8,
+  tools: ['browser-image-compression', 'compressorjs', 'canvas'],
+})
+
+console.log('最优压缩工具:', result.bestTool)
+console.log('压缩后文件:', result.compressedFile)
+console.log('所有结果:', result.results)
+```
+
+### 📁 多文件批量处理
+
+```typescript
+// 批量压缩多个文件
+const files = Array.from(fileInput.files)
+const compressedFiles = await Promise.all(
+  files.map((file) => compress(file, 0.7, 'file')),
+)
+```
+
+### 📋 粘贴上传
+
+```typescript
+// 监听粘贴事件
+document.addEventListener('paste', async (e) => {
+  const items = Array.from(e.clipboardData?.items || [])
+  const imageItems = items.filter((item) => item.type.startsWith('image/'))
+
+  for (const item of imageItems) {
+    const file = item.getAsFile()
+    if (file) {
+      const compressed = await compress(file, 0.6)
+      // 处理压缩后的图片
+    }
+  }
+})
+```
+
+### 📂 文件夹上传
+
+```html
+<!-- HTML 中设置 webkitdirectory 属性 -->
+<input
+  type="file"
+  webkitdirectory
+  multiple
+  accept="image/*"
+  @change="handleFolderUpload"
+/>
+```
+
+````typescript
+const handleFolderUpload = async (event: Event) => {
+  const files = Array.from((event.target as HTMLInputElement).files || [])
+  const imageFiles = files.filter(file => file.type.startsWith('image/'))
+
+  // 批量压缩文件夹中的所有图片
+  const results = await Promise.all(
+    imageFiles.map(async file => ({
+      original: file,
+      compressed: await compress(file, 0.7, 'file'),
+      path: file.webkitRelativePath
+    }))
+  )
+}
+
 ### 🎨 多种输出格式
 
 ```typescript
@@ -78,7 +167,7 @@ const base64 = await compress(file, 0.6, 'base64')
 
 // 🔹 返回 ArrayBuffer，用于进一步处理
 const arrayBuffer = await compress(file, 0.6, 'arrayBuffer')
-```
+````
 
 ### 🎯 实际应用场景
 
@@ -136,6 +225,31 @@ compress<T extends CompressResultType = 'blob'>(
 ): Promise<CompressResult<T>>
 ```
 
+### compressWithMultipleTools 函数
+
+```typescript
+compressWithMultipleTools(
+  file: File,                    // 要压缩的图片文件
+  options: {
+    quality?: number,            // 压缩质量 (0-1)，默认 0.8
+    tools?: CompressTool[]       // 使用的压缩工具列表
+  }
+): Promise<{
+  bestTool: string,             // 最优压缩工具名称
+  compressedFile: Blob,         // 最优压缩结果
+  results: CompressResult[]     // 所有工具的压缩结果
+}>
+```
+
+#### 🛠️ 支持的压缩工具
+
+| 工具                      | 标识符                        | 适用格式  | 特点                     |
+| ------------------------- | ----------------------------- | --------- | ------------------------ |
+| Browser Image Compression | `'browser-image-compression'` | JPEG, PNG | 快速压缩，兼容性好       |
+| CompressorJS              | `'compressorjs'`              | JPEG, PNG | 轻量级，配置灵活         |
+| Canvas                    | `'canvas'`                    | 所有格式  | 原生浏览器 API，通用性强 |
+| Gifsicle                  | `'gifsicle'`                  | GIF       | GIF 专用压缩引擎         |
+
 #### 📋 参数说明
 
 | 参数      | 类型                 | 默认值   | 说明                               |
@@ -155,10 +269,25 @@ compress<T extends CompressResultType = 'blob'>(
 
 #### 🖼️ 支持的图片格式
 
-- **JPEG** (.jpg, .jpeg) - 使用 browser-image-compression
-- **PNG** (.png) - 使用 browser-image-compression
+- **JPEG** (.jpg, .jpeg) - 使用 browser-image-compression、CompressorJS、Canvas
+- **PNG** (.png) - 使用 browser-image-compression、CompressorJS、Canvas
+- **WebP** (.webp) - 使用 Canvas
 - **GIF** (.gif) - 使用 gifsicle-wasm-browser
-- **其他格式** - 使用 compressorjs
+- **其他格式** - 使用 Canvas 和 CompressorJS 兜底
+
+### 🎨 UI 交互功能
+
+#### 📱 移动端和桌面端优化
+
+- **智能拖拽** - 拖拽时自动隐藏信息层，提升视觉体验
+- **响应式设计** - 完美适配各种屏幕尺寸
+- **触摸友好** - 移动端手势操作优化
+
+#### 📊 压缩统计显示
+
+- **实时统计** - 显示原始大小、压缩后大小、节省空间
+- **压缩比例** - 负数用红色显示，正数用绿色显示
+- **批量统计** - 多文件压缩时显示总体统计信息
 
 ### TypeScript 类型支持
 
@@ -195,9 +324,16 @@ const buffer = await compress(file, 0.6, 'arrayBuffer') // 类型: ArrayBuffer
 
 本项目基于以下优秀的开源库构建：
 
-- [compressorjs](https://github.com/fengyuanchen/compressorjs) - JPEG/PNG 压缩
-- [browser-image-compression](https://github.com/Donaldcwl/browser-image-compression) - 图片压缩核心
-- [gifsicle-wasm-browser](https://github.com/renzhezhilu/gifsicle-wasm-browser) - GIF 压缩支持
+- **核心压缩引擎**
+  - [browser-image-compression](https://github.com/Donaldcwl/browser-image-compression) - 浏览器图片压缩核心
+  - [compressorjs](https://github.com/fengyuanchen/compressorjs) - 轻量级图片压缩库
+  - [gifsicle-wasm-browser](https://github.com/renzhezhilu/gifsicle-wasm-browser) - GIF 专用压缩支持
+
+- **开发工具**
+  - [Vue 3](https://vuejs.org/) - 渐进式 JavaScript 框架
+  - [Vite](https://vitejs.dev/) - 现代化构建工具
+  - [TypeScript](https://www.typescriptlang.org/) - 类型安全的 JavaScript
+  - [UnoCSS](https://unocss.dev/) - 即时原子化 CSS 引擎
 
 ## 📄 许可证
 
