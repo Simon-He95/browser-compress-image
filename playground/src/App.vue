@@ -38,6 +38,8 @@ const fileRef = ref()
 const isDragOver = ref(false)
 const currentImageIndex = ref(0)
 const isCompressingAll = ref(false)
+const isMobileDragging = ref(false)
+const isPCDragging = ref(false) // PC端拖拽状态 // 移动端拖拽状态
 
 // 图片列表状态
 const imageItems = ref<ImageItem[]>([])
@@ -72,12 +74,7 @@ const allCompressed = computed(
     imageItems.value.length > 0 &&
     compressedCount.value === imageItems.value.length,
 )
-watch(
-  () => imageItems.value,
-  (newV, oldV) => {
-    debugger
-  },
-)
+
 // 注册事件监听器
 onMounted(() => {
   fileRef.value!.addEventListener('change', handleFileInputChange)
@@ -90,6 +87,15 @@ onMounted(() => {
 
   // 添加粘贴事件监听
   document.addEventListener('paste', handlePaste)
+
+  // 添加移动端触摸事件监听
+  document.addEventListener('touchstart', handleTouchStart, { passive: true })
+  document.addEventListener('touchend', handleTouchEnd, { passive: true })
+  document.addEventListener('touchcancel', handleTouchEnd, { passive: true })
+  
+  // 添加PC端鼠标事件监听
+  document.addEventListener('mousedown', handleMouseDown)
+  document.addEventListener('mouseup', handleMouseUp)
 })
 
 onUnmounted(() => {
@@ -100,6 +106,15 @@ onUnmounted(() => {
   document.removeEventListener('dragleave', handleDragLeave)
   document.removeEventListener('paste', handlePaste)
 
+  // 清理移动端触摸事件监听器
+  document.removeEventListener('touchstart', handleTouchStart)
+  document.removeEventListener('touchend', handleTouchEnd)
+  document.removeEventListener('touchcancel', handleTouchEnd)
+  
+  // 清理PC端鼠标事件监听器
+  document.removeEventListener('mousedown', handleMouseDown)
+  document.removeEventListener('mouseup', handleMouseUp)
+
   // 清理对象URL
   imageItems.value.forEach((item) => {
     URL.revokeObjectURL(item.originalUrl)
@@ -108,6 +123,40 @@ onUnmounted(() => {
     }
   })
 })
+
+// 移动端触摸事件处理
+function handleTouchStart(e: TouchEvent) {
+  // 检查触摸是否在图片比较滑块上
+  const target = e.target as HTMLElement
+  if (target.closest('img-comparison-slider') || 
+      target.closest('.comparison-slider-fullscreen')) {
+    isMobileDragging.value = true
+    console.log('touch start')
+  }
+}
+
+function handleTouchEnd(e: TouchEvent) {
+  // 触摸结束时恢复显示
+  isMobileDragging.value = false
+  console.log('touch end')
+}
+
+// PC端鼠标事件处理
+function handleMouseDown(e: MouseEvent) {
+  // 检查鼠标按下是否在图片比较滑块上
+  const target = e.target as HTMLElement
+  if (target.closest('img-comparison-slider') || 
+      target.closest('.comparison-slider-fullscreen')) {
+    isPCDragging.value = true
+    console.log('mouse down on slider')
+  }
+}
+
+function handleMouseUp(e: MouseEvent) {
+  // 鼠标松开时恢复显示
+  isPCDragging.value = false
+  console.log('mouse up')
+}
 
 // 拖拽事件处理
 function handleDragOver(e: DragEvent) {
@@ -426,6 +475,8 @@ async function handleFileInputChange() {
       })
     } finally {
       loading.value = false
+      // 清空文件输入框的值，确保可以重复选择同一文件
+      fileRef.value.value = ''
     }
   }
 }
@@ -476,9 +527,6 @@ async function compressImage(item: ImageItem): Promise<void> {
       ((item.originalSize - compressedBlob.size) / item.originalSize) * 100
 
     // 为当前图片优化渲染性能
-    nextTick(() => {
-      optimizeImageRendering()
-    })
   } catch (error) {
     console.error('Compression error:', error)
     item.compressionError =
@@ -510,52 +558,6 @@ async function handleImageQualityChange(item: ImageItem, newQuality: number) {
   await compressImage(item)
 }
 
-// 优化图片渲染性能，减少滚动时的模糊
-function optimizeImageRendering() {
-  console.log('开始优化图片渲染')
-
-  // 等待DOM更新
-  setTimeout(() => {
-    const images = document.querySelectorAll(
-      '.comparison-image-fullscreen, img-comparison-slider img',
-    )
-    console.log('找到图片数量:', images.length)
-
-    images.forEach((img, index) => {
-      if (img instanceof HTMLImageElement) {
-        console.log(`优化第${index + 1}张图片:`, img.src)
-        // 强制硬件加速和高质量渲染
-        img.style.transform = 'translateZ(0)'
-        img.style.backfaceVisibility = 'hidden'
-        img.style.imageRendering = 'crisp-edges'
-        img.style.webkitBackfaceVisibility = 'hidden'
-        // 立即设置正确的显示状态，防止暗到亮的闪烁
-        img.style.opacity = '1'
-        img.style.visibility = 'visible'
-        img.style.transition = 'none'
-        img.style.animation = 'none'
-        img.style.filter = 'none'
-        // 强制重绘以确保立即生效
-        img.offsetHeight
-      }
-    })
-
-    // 同时优化 img-comparison-slider 组件本身
-    const sliders = document.querySelectorAll('img-comparison-slider')
-    console.log('找到slider数量:', sliders.length)
-
-    sliders.forEach((slider, index) => {
-      if (slider instanceof HTMLElement) {
-        console.log(`优化第${index + 1}个slider`)
-        slider.style.opacity = '1'
-        slider.style.visibility = 'visible'
-        slider.style.transition = 'none'
-        // 强制重绘
-        slider.offsetHeight
-      }
-    })
-  }, 100)
-}
 
 // 删除单个图片
 function deleteImage(index: number) {
@@ -656,10 +658,9 @@ async function downloadAllImages() {
         h(
           'div',
           {
-            style:
-              'color: #059669; font-size: 13px; font-family: monospace; background: rgba(5, 150, 105, 0.1); padding: 2px 6px; border-radius: 4px;',
+            style: `color: ${totalCompressionRatio.value < 0 ? '#dc2626' : '#059669'}; font-size: 13px; font-family: monospace; background: ${totalCompressionRatio.value < 0 ? 'rgba(220, 38, 38, 0.1)' : 'rgba(5, 150, 105, 0.1)'}; padding: 2px 6px; border-radius: 4px;`,
           },
-          `Total saved: ${totalCompressionRatio.value.toFixed(1)}%`,
+          `Total ${totalCompressionRatio.value < 0 ? 'increased' : 'saved'}: ${totalCompressionRatio.value < 0 ? '+' : ''}${Math.abs(totalCompressionRatio.value).toFixed(1)}%`,
         ),
       ]),
       type: 'success',
@@ -807,8 +808,13 @@ function setCurrentImage(index: number) {
               >Total: {{ formatFileSize(totalOriginalSize) }} →
               {{ formatFileSize(totalCompressedSize) }}</span
             >
-            <span class="saved-mini"
-              >-{{ totalCompressionRatio.toFixed(1) }}%</span
+            <span
+              class="saved-mini"
+              :class="{ 'saved-negative': totalCompressionRatio < 0 }"
+            >
+              {{ totalCompressionRatio < 0 ? '+' : '-'
+              }}{{ Math.abs(totalCompressionRatio).toFixed(1) }}%
+            </span>
             >
           </div>
         </div>
@@ -881,8 +887,14 @@ function setCurrentImage(index: number) {
                 <span class="compressed-size">
                   → {{ formatFileSize(item.compressedSize || 0) }}
                 </span>
-                <span class="ratio">
-                  (-{{ item.compressionRatio?.toFixed(1) }}%)
+                <span
+                  class="ratio"
+                  :class="{
+                    'ratio-negative': (item.compressionRatio || 0) < 0,
+                  }"
+                >
+                  ({{ (item.compressionRatio || 0) < 0 ? '+' : '-'
+                  }}{{ Math.abs(item.compressionRatio || 0).toFixed(1) }}%)
                 </span>
               </div>
               <!-- 独立的质量控制 -->
@@ -1033,7 +1045,13 @@ function setCurrentImage(index: number) {
             </div>
 
             <!-- 图片信息覆盖层 -->
-            <div class="image-overlay-info">
+            <div 
+              class="image-overlay-info"
+              :class="{ 
+                'mobile-dragging': isMobileDragging,
+                'pc-dragging': isPCDragging
+              }"
+            >
               <div class="image-title">
                 {{ currentImage.file.name }}
               </div>
@@ -1046,8 +1064,15 @@ function setCurrentImage(index: number) {
                 <span v-if="currentImage.compressedSize">
                   → {{ formatFileSize(currentImage.compressedSize) }}
                 </span>
-                <span v-if="currentImage.compressionRatio" class="savings">
-                  (-{{ currentImage.compressionRatio.toFixed(1) }}%)
+                <span
+                  v-if="currentImage.compressionRatio"
+                  class="savings"
+                  :class="{
+                    'savings-negative': currentImage.compressionRatio < 0,
+                  }"
+                >
+                  ({{ currentImage.compressionRatio < 0 ? '+' : '-'
+                  }}{{ Math.abs(currentImage.compressionRatio).toFixed(1) }}%)
                 </span>
               </div>
             </div>
@@ -1559,11 +1584,28 @@ function setCurrentImage(index: number) {
   --el-slider-runway-bg-color: rgba(0, 0, 0, 0.1);
 }
 
+/* 确保 mini-slider 滑轨可点击 */
+.mini-slider :deep(.el-slider__runway) {
+  height: 8px; /* 增加点击区域高度 */
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* 确保整个 mini-slider 容器都可交互 */
+.mini-slider :deep(.el-slider) {
+  position: relative;
+  z-index: 1;
+  padding: 10px 0; /* 增加上下padding，扩大点击区域 */
+}
+
 /* 工具栏滑块按钮样式 */
 .mini-slider :deep(.el-slider__button) {
   background: #4f46e5;
   border: 2px solid #ffffff;
   box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+  cursor: pointer;
+  z-index: 2;
 }
 
 .mini-slider :deep(.el-slider__button:hover) {
@@ -1571,6 +1613,12 @@ function setCurrentImage(index: number) {
   border-color: #ffffff;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
   transform: scale(1.1);
+}
+
+/* 确保 mini-slider 按钮包装器也有足够的点击区域 */
+.mini-slider :deep(.el-slider__button-wrapper) {
+  cursor: pointer;
+  z-index: 2;
 }
 
 /* 统计信息区域 */
@@ -1608,6 +1656,18 @@ function setCurrentImage(index: number) {
   border: 1px solid rgba(34, 197, 94, 0.2);
   font-family: 'SF Mono', Monaco, 'Consolas', monospace;
   box-shadow: 0 2px 4px rgba(34, 197, 94, 0.1);
+  transition: all 0.2s ease;
+}
+
+.saved-mini.saved-negative {
+  color: #dc2626;
+  background: linear-gradient(
+    135deg,
+    rgba(220, 38, 38, 0.1),
+    rgba(220, 38, 38, 0.2)
+  );
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
 }
 
 /* 下载按钮区域 */
@@ -2121,13 +2181,18 @@ img-comparison-slider img {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  position: relative; /* 确保正确的层级关系 */
 }
+
+/* 确保按钮包装器不会干扰点击 */
 :deep(.image-quality-control .el-slider__button-wrapper) {
   top: 50%;
   transform: translateY(-50%) translateX(-50%);
   height: fit-content;
   width: fit-content;
   display: flex;
+  cursor: pointer;
+  z-index: 3; /* 确保按钮在最上层 */
 }
 
 .quality-label-small {
@@ -2141,7 +2206,7 @@ img-comparison-slider img {
 }
 
 .image-quality-slider {
-  --el-slider-height: 3px;
+  --el-slider-height: 6px;
   --el-slider-button-size: 12px;
   --el-slider-main-bg-color: linear-gradient(135deg, #4f46e5, #7c3aed);
   --el-slider-runway-bg-color: rgba(0, 0, 0, 0.1);
@@ -2149,11 +2214,28 @@ img-comparison-slider img {
   max-width: 120px;
 }
 
+/* 确保滑轨可点击 */
+.image-quality-slider :deep(.el-slider__runway) {
+  height: 6px; /* 增加点击区域高度 */
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* 确保整个滑动条容器都可交互 */
+.image-quality-slider :deep(.el-slider) {
+  position: relative;
+  z-index: 1;
+  padding: 8px 0; /* 增加上下padding，扩大点击区域 */
+}
+
 /* 自定义滑块按钮样式 */
 .image-quality-slider :deep(.el-slider__button) {
   background: #4f46e5;
   border: 2px solid #ffffff;
   box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+  cursor: pointer;
+  z-index: 2;
 }
 
 .image-quality-slider :deep(.el-slider__button:hover) {
@@ -2161,6 +2243,12 @@ img-comparison-slider img {
   border-color: #ffffff;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
   transform: scale(1.1);
+}
+
+/* 确保按钮包装器也有足够的点击区域 */
+.image-quality-slider :deep(.el-slider__button-wrapper) {
+  cursor: pointer;
+  z-index: 2;
 }
 
 .original-size {
@@ -2176,6 +2264,11 @@ img-comparison-slider img {
   color: #16a34a;
   font-weight: 700;
   font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+  transition: color 0.2s ease;
+}
+
+.ratio.ratio-negative {
+  color: #dc2626;
 }
 
 /* 图片操作按钮 */
@@ -2308,23 +2401,20 @@ img-comparison-slider img {
   pointer-events: none;
 }
 
-/* 当比对滑块被拖拽时隐藏信息层 */
-.comparison-container-fullscreen:hover .image-overlay-info {
+/* 移动端拖拽时隐藏信息层 */
+.image-overlay-info.mobile-dragging {
   opacity: 0;
   visibility: hidden;
 }
 
-/* 当鼠标在比对滑块上时也隐藏信息层 */
-.comparison-slider-fullscreen:hover ~ .image-overlay-info {
+/* PC端拖拽时隐藏信息层 */
+.image-overlay-info.pc-dragging {
   opacity: 0;
   visibility: hidden;
 }
 
-/* 为img-comparison-slider添加专门的样式 */
-:deep(img-comparison-slider:hover) ~ .image-overlay-info {
-  opacity: 0;
-  visibility: hidden;
-}
+
+
 
 .image-title {
   font-size: 16px;
@@ -2347,5 +2437,10 @@ img-comparison-slider img {
   color: #4ade80;
   font-weight: 700;
   font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+  transition: color 0.2s ease;
+}
+
+.image-details .savings.savings-negative {
+  color: #dc2626;
 }
 </style>
