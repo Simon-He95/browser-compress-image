@@ -1885,7 +1885,8 @@ function setCurrentImage(index: number) {
     overflow: visible;
   }
 
-  .comparison-container-fullscreen {
+  .comparison-container-fullscreen,
+  .comparison-image-fullscreen {
     min-height: 250px;
     height: 300px;
     display: flex;
