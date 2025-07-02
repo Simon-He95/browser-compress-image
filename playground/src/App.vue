@@ -43,7 +43,107 @@ const isPCDragging = ref(false) // PC端拖拽状态 // 移动端拖拽状态
 
 // 图片列表状态
 const imageItems = ref<ImageItem[]>([])
-const supportType = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif']
+const supportType = [
+  'image/png',
+  'image/jpg',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+]
+
+// 检查并过滤不支持的文件，显示提示信息
+function filterAndNotifyUnsupportedFiles(files: File[]): File[] {
+  const imageFiles = files.filter((file) => file.type.startsWith('image/'))
+  const supportedFiles = imageFiles.filter((file) =>
+    supportType.includes(file.type),
+  )
+  const unsupportedFiles = imageFiles.filter(
+    (file) => !supportType.includes(file.type),
+  )
+
+  // 如果有不支持的图片格式，显示详细提示
+  if (unsupportedFiles.length > 0) {
+    const unsupportedDetails = unsupportedFiles.map((file) => {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'unknown'
+      return {
+        name: file.name,
+        extension: extension.toUpperCase(),
+        type: file.type || 'unknown',
+      }
+    })
+
+    const unsupportedFormats = [
+      ...new Set(unsupportedDetails.map((detail) => detail.extension)),
+    ]
+
+    ElMessage({
+      message: h('div', [
+        h(
+          'div',
+          { style: 'font-weight: 600; margin-bottom: 6px' },
+          `已过滤 ${unsupportedFiles.length} 个不支持的图片文件:`,
+        ),
+        h(
+          'div',
+          { style: 'font-size: 13px; margin-bottom: 4px; color: #f56565' },
+          `不支持的格式: ${unsupportedFormats.join(', ')}`,
+        ),
+        unsupportedFiles.length <= 3
+          ? h(
+              'div',
+              { style: 'font-size: 12px; margin-bottom: 6px; opacity: 0.8' },
+              unsupportedFiles.map((f) => f.name).join(', '),
+            )
+          : h(
+              'div',
+              { style: 'font-size: 12px; margin-bottom: 6px; opacity: 0.8' },
+              `${unsupportedFiles
+                .slice(0, 2)
+                .map((f) => f.name)
+                .join(', ')} 等 ${unsupportedFiles.length} 个文件`,
+            ),
+        h(
+          'div',
+          {
+            style:
+              'font-size: 12px; opacity: 0.7; border-top: 1px solid #e2e8f0; padding-top: 4px',
+          },
+          '✅ 支持的格式: PNG, JPG, JPEG, GIF, WebP',
+        ),
+      ]),
+      type: 'warning',
+      duration: 5000,
+    })
+  }
+
+  // 如果有非图片文件，也提示
+  const nonImageFiles = files.filter((file) => !file.type.startsWith('image/'))
+  if (nonImageFiles.length > 0) {
+    ElMessage({
+      message: h('div', [
+        h('div', `📁 检测到 ${nonImageFiles.length} 个非图片文件已被过滤`),
+        nonImageFiles.length <= 3
+          ? h(
+              'div',
+              { style: 'font-size: 12px; margin-top: 4px; opacity: 0.8' },
+              nonImageFiles.map((f) => f.name).join(', '),
+            )
+          : h(
+              'div',
+              { style: 'font-size: 12px; margin-top: 4px; opacity: 0.8' },
+              `${nonImageFiles
+                .slice(0, 2)
+                .map((f) => f.name)
+                .join(', ')} 等文件`,
+            ),
+      ]),
+      type: 'info',
+      duration: 3000,
+    })
+  }
+
+  return supportedFiles
+}
 
 // 计算属性
 const hasImages = computed(() => imageItems.value.length > 0)
@@ -240,7 +340,7 @@ async function handleDrop(e: DragEvent) {
       return
     }
 
-    const imageFiles = files.filter((file) => supportType.includes(file.type))
+    const imageFiles = filterAndNotifyUnsupportedFiles(files)
     console.log(
       '过滤后的图片文件:',
       imageFiles.length,
@@ -249,8 +349,7 @@ async function handleDrop(e: DragEvent) {
 
     if (imageFiles.length === 0) {
       ElMessage({
-        message:
-          'No valid image files found. Please drop PNG, JPG, JPEG, or GIF files.',
+        message: '没有找到支持的图片文件',
         type: 'warning',
       })
       return
@@ -324,7 +423,7 @@ async function handlePaste(e: ClipboardEvent) {
     }
 
     // 过滤图片文件
-    const imageFiles = files.filter((file) => supportType.includes(file.type))
+    const imageFiles = filterAndNotifyUnsupportedFiles(files)
     console.log(
       '剪贴板过滤后的图片文件:',
       imageFiles.length,
@@ -332,7 +431,7 @@ async function handlePaste(e: ClipboardEvent) {
     )
 
     if (imageFiles.length === 0) {
-      console.log('剪贴板中没有找到图片文件')
+      console.log('剪贴板中没有找到支持的图片文件')
       return // 静默处理，不显示错误消息
     }
 
@@ -468,9 +567,16 @@ async function handleFileInputChange() {
     loading.value = true
 
     try {
-      const imageFiles = selectedFiles.filter((file) =>
-        supportType.includes(file.type),
-      )
+      const imageFiles = filterAndNotifyUnsupportedFiles(selectedFiles)
+
+      if (imageFiles.length === 0) {
+        ElMessage({
+          message: '没有找到支持的图片文件',
+          type: 'warning',
+        })
+        return
+      }
+
       await addNewImages(imageFiles)
 
       ElMessage({
@@ -818,7 +924,6 @@ function setCurrentImage(index: number) {
               {{ totalCompressionRatio < 0 ? '+' : '-'
               }}{{ Math.abs(totalCompressionRatio).toFixed(1) }}%
             </span>
-            >
           </div>
         </div>
 
@@ -1088,7 +1193,7 @@ function setCurrentImage(index: number) {
       id="file"
       ref="fileRef"
       type="file"
-      accept="image/*"
+      accept="image/png,image/jpg,image/jpeg,image/gif,image/webp"
       multiple
       hidden
     />
@@ -1103,13 +1208,15 @@ function setCurrentImage(index: number) {
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   position: relative;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden; /* PC端禁用垂直滚动 */
   /* 优化滚动性能 */
   -webkit-overflow-scrolling: touch;
   /* 减少重绘 */
   transform: translateZ(0);
   will-change: scroll-position;
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-container.drag-over {
@@ -1312,6 +1419,10 @@ function setCurrentImage(index: number) {
   max-width: 100vw;
   margin: 0;
   padding: 0;
+  flex: 1;
+  min-height: 0; /* 允许弹性项目缩小 */
+  overflow-y: auto; /* 内容区域可滚动 */
+  overflow-x: hidden;
 }
 
 /* 英雄上传区域 */
@@ -1801,6 +1912,32 @@ function setCurrentImage(index: number) {
   -webkit-backface-visibility: hidden;
 }
 
+/* PC端样式优化 - 避免滚动条 */
+@media (min-width: 769px) {
+  .app-container {
+    overflow-y: hidden; /* PC端完全禁用滚动 */
+    height: 100vh;
+    max-height: 100vh;
+  }
+
+  .main-content {
+    overflow-y: auto; /* 只有主内容区域可滚动 */
+    max-height: calc(100vh - 120px); /* 减去header高度 */
+  }
+
+  .header-section {
+    flex-shrink: 0; /* 确保header不会被压缩 */
+    height: auto;
+    min-height: 120px;
+  }
+
+  /* 当有图片时，进一步优化布局 */
+  .image-display-section {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .app-container {
@@ -2075,7 +2212,7 @@ img-comparison-slider img {
 
 /* 图片卡片 */
 .image-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: transparent;
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;

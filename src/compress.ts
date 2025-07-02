@@ -115,6 +115,10 @@ export async function compress<T extends CompressResultType = 'blob'>(
   } else if (file.type.includes('gif')) {
     bestResult = await compressWithMultipleTools(file, compressionOptions, [
       'gifsicle',
+    ])
+  } else if (file.type.includes('webp')) {
+    bestResult = await compressWithMultipleTools(file, compressionOptions, [
+      'canvas',
       'browser-image-compression',
     ])
   } else {
