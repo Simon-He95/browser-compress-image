@@ -9,10 +9,10 @@ import {
 } from '@element-plus/icons-vue'
 import GitForkVue from '@simon_he/git-fork-vue'
 import { ElMessage } from 'element-plus'
-import { download } from 'lazy-js-utils'
-import { h, watch } from 'vue'
-import { compress } from '../../src'
 import 'img-comparison-slider/dist/styles.css'
+import { download } from 'lazy-js-utils'
+import { h } from 'vue'
+import { compress } from '../../src'
 
 // 导入 img-comparison-slider
 import('img-comparison-slider')
