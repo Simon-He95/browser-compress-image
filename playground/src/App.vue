@@ -390,37 +390,51 @@ async function handlePaste(e: ClipboardEvent) {
   try {
     let files: File[] = []
 
-    // 首先尝试使用 webkitGetAsEntry API（支持文件夹）
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i]
-      console.log(`处理剪贴板 Item ${i}:`, { kind: item.kind, type: item.type })
+    // 方法1: 首先尝试使用 webkitGetAsEntry API（支持文件夹）
+    await Promise.all(
+      Array.from(items).map(async (item, i) => {
+        console.log(`处理剪贴板 Item ${i}:`, {
+          kind: item.kind,
+          type: item.type,
+          webkitGetAsEntry: !!item.webkitGetAsEntry,
+        })
 
-      if (item.kind === 'file') {
-        // 尝试使用 webkitGetAsEntry 获取文件系统入口
-        const entry = item.webkitGetAsEntry?.()
-        console.log(`Item ${i} webkitGetAsEntry:`, entry)
+        if (item.kind === 'file') {
+          // 尝试使用 webkitGetAsEntry 获取文件系统入口
+          const entry = item.webkitGetAsEntry?.()
+          console.log(`Item ${i} webkitGetAsEntry:`, entry)
 
-        if (entry) {
-          console.log(`Item ${i} 使用 processEntry`)
-          const itemFiles: File[] = []
-          await processEntry(entry, itemFiles)
-          console.log(
-            `Item ${i} processEntry 完成，文件数:`,
-            itemFiles.length,
-            itemFiles.map((f) => f.name),
-          )
-          files.push(...itemFiles)
-        } else {
-          // 回退到传统文件API
-          console.log(`Item ${i} 回退到 getAsFile`)
-          const file = item.getAsFile()
-          if (file) {
-            console.log(`剪贴板文件 ${i}:`, file.name, file.type, file.size)
-            files.push(file)
+          if (entry) {
+            console.log(`Item ${i} 使用 processEntry`)
+            const itemFiles: File[] = []
+            await processEntry(entry, itemFiles)
+            console.log(
+              `Item ${i} processEntry 完成，文件数:`,
+              itemFiles.length,
+              itemFiles.map((f) => f.name),
+            )
+            files.push(...itemFiles)
+          } else {
+            // 回退到传统文件API
+            console.log(`Item ${i} 回退到 getAsFile`)
+            const file = item.getAsFile()
+            if (file) {
+              console.log(`剪贴板文件 ${i}:`, file.name, file.type, file.size)
+              files.push(file)
+            } else {
+              console.log(`Item ${i} getAsFile 返回 null`)
+            }
           }
+        } else {
+          console.log(`Item ${i} 不是文件类型, kind: ${item.kind}`)
         }
-      }
-    }
+      }),
+    )
+
+    console.log(
+      `总共收集到 ${files.length} 个文件:`,
+      files.map((f) => f.name),
+    )
 
     // 过滤图片文件
     const imageFiles = filterAndNotifyUnsupportedFiles(files)
