@@ -7,7 +7,7 @@ import { compressWithMultipleTools } from '@simon_he/browser-compress-image'
 // 使用多种压缩工具并行处理，自动选择最优结果
 const result = await compressWithMultipleTools(file, {
   quality: 0.8,
-  tools: ['browser-image-compression', 'compressorjs', 'canvas']
+  tools: ['browser-image-compression', 'compressorjs', 'canvas'],
 })
 
 console.log('最优压缩工具:', result.bestTool)
@@ -24,12 +24,12 @@ import { compressWithStats } from '@simon_he/browser-compress-image'
 const stats = await compressWithStats(file, { quality: 0.8 })
 
 console.log('压缩统计:', {
-  bestTool: stats.bestTool,              // 最优工具: "canvas"
-  originalSize: stats.originalSize,       // 原始大小: 1024000 bytes
-  compressedSize: stats.compressedSize,   // 压缩后大小: 512000 bytes
+  bestTool: stats.bestTool, // 最优工具: "canvas"
+  originalSize: stats.originalSize, // 原始大小: 1024000 bytes
+  compressedSize: stats.compressedSize, // 压缩后大小: 512000 bytes
   compressionRatio: stats.compressionRatio, // 压缩比例: 50%
-  totalDuration: stats.totalDuration,     // 总耗时: 1200ms
-  toolsUsed: stats.toolsUsed             // 各工具详细性能数据
+  totalDuration: stats.totalDuration, // 总耗时: 1200ms
+  toolsUsed: stats.toolsUsed, // 各工具详细性能数据
 })
 
 // 性能对比表格会在控制台自动显示
@@ -39,9 +39,10 @@ console.log('压缩统计:', {
 // │    0    │ 'canvas'             │    512000     │   '50.0%'    │   '800ms'   │
 // │    1    │ 'browser-compression'│    520000     │   '49.2%'    │   '1200ms'  │
 // └─────────┴──────────────────────┴───────────────┴──────────────┴─────────────┘
-``` 
-  # 🚀 Browser Compress Image
-  
+```
+
+# 🚀 Browser Compress Image
+
   <p align="center">
     <strong>轻量级、高性能的浏览器图片压缩库</strong>
   </p>
@@ -277,19 +278,20 @@ compressWithStats(
 
 ```typescript
 interface CompressionStats {
-  bestTool: string              // 最优压缩工具名称
-  compressedFile: Blob          // 最优压缩结果
-  originalSize: number          // 原始文件大小（字节）
-  compressedSize: number        // 压缩后大小（字节）
-  compressionRatio: number      // 压缩比例（百分比）
-  totalDuration: number         // 总耗时（毫秒）
-  toolsUsed: Array<{           // 各工具详细信息
-    tool: string               // 工具名称
-    size: number               // 压缩后大小
-    duration: number           // 耗时
-    compressionRatio: number   // 压缩比例
-    success: boolean           // 是否成功
-    error?: string             // 错误信息（如果失败）
+  bestTool: string // 最优压缩工具名称
+  compressedFile: Blob // 最优压缩结果
+  originalSize: number // 原始文件大小（字节）
+  compressedSize: number // 压缩后大小（字节）
+  compressionRatio: number // 压缩比例（百分比）
+  totalDuration: number // 总耗时（毫秒）
+  toolsUsed: Array<{
+    // 各工具详细信息
+    tool: string // 工具名称
+    size: number // 压缩后大小
+    duration: number // 耗时
+    compressionRatio: number // 压缩比例
+    success: boolean // 是否成功
+    error?: string // 错误信息（如果失败）
   }>
 }
 ```

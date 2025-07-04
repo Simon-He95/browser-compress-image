@@ -12,7 +12,7 @@ import { ElMessage } from 'element-plus'
 import 'img-comparison-slider/dist/styles.css'
 import { download } from 'lazy-js-utils'
 import { h } from 'vue'
-import { compress } from '@simon_he/browser-compress-image'
+import { compress } from '../../src'
 
 // 导入 img-comparison-slider
 import('img-comparison-slider')

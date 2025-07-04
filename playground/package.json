@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@iconify-json/carbon": "^1.2.10",
-    "@simon_he/browser-compress-image": "workspace:^1.0.6",
     "@simon_he/git-fork-vue": "^0.0.18",
     "@vueuse/core": "^8.9.4",
     "element-plus": "^2.10.2",

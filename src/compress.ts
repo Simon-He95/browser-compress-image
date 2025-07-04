@@ -25,7 +25,7 @@ const devLog = {
     if (process.env.NODE_ENV === 'development') {
       console.table(data)
     }
-  }
+  },
 }
 
 // 压缩工具类型定义
@@ -153,7 +153,7 @@ async function compressWithMultipleTools(
   // 并行运行所有压缩工具
   const promises = tools.map(async (tool) => {
     const startTime = performance.now()
-    
+
     try {
       let compressedBlob: Blob
 
@@ -190,7 +190,7 @@ async function compressWithMultipleTools(
     } catch (error) {
       const endTime = performance.now()
       const duration = Math.round(endTime - startTime)
-      
+
       return {
         tool,
         blob: file, // 失败时使用原文件
@@ -231,7 +231,7 @@ async function compressWithMultipleTools(
   if (bestAttempt.size >= file.size * 0.98 && options.quality > 0.85) {
     const totalEndTime = performance.now()
     const totalDuration = Math.round(totalEndTime - totalStartTime)
-    
+
     devLog.log(
       `Best compression (${bestAttempt.tool}) size: ${bestAttempt.size}, original: ${file.size}, using original (total: ${totalDuration}ms)`,
     )
@@ -248,13 +248,13 @@ async function compressWithMultipleTools(
   // 输出所有工具的性能比较
   if (successfulAttempts.length > 1) {
     devLog.table(
-      successfulAttempts.map(attempt => ({
+      successfulAttempts.map((attempt) => ({
         Tool: attempt.tool,
         'Size (bytes)': attempt.size,
         'Reduction (%)': `${(((file.size - attempt.size) / file.size) * 100).toFixed(1)}%`,
         'Duration (ms)': attempt.duration,
-        'Speed (MB/s)': `${((file.size / 1024 / 1024) / (attempt.duration / 1000)).toFixed(2)}`,
-      }))
+        'Speed (MB/s)': `${(file.size / 1024 / 1024 / (attempt.duration / 1000)).toFixed(2)}`,
+      })),
     )
   }
 
@@ -286,12 +286,30 @@ export async function compressWithStats(
 ): Promise<CompressionStats> {
   // 使用多工具压缩并返回详细统计
   return await compressWithMultipleToolsWithStats(file, {
-    quality: typeof qualityOrOptions === 'object' ? qualityOrOptions.quality || 0.6 : qualityOrOptions || 0.6,
-    mode: typeof qualityOrOptions === 'object' ? qualityOrOptions.mode || 'keepSize' : 'keepSize',
-    targetWidth: typeof qualityOrOptions === 'object' ? qualityOrOptions.targetWidth : undefined,
-    targetHeight: typeof qualityOrOptions === 'object' ? qualityOrOptions.targetHeight : undefined,
-    maxWidth: typeof qualityOrOptions === 'object' ? qualityOrOptions.maxWidth : undefined,
-    maxHeight: typeof qualityOrOptions === 'object' ? qualityOrOptions.maxHeight : undefined,
+    quality:
+      typeof qualityOrOptions === 'object'
+        ? qualityOrOptions.quality || 0.6
+        : qualityOrOptions || 0.6,
+    mode:
+      typeof qualityOrOptions === 'object'
+        ? qualityOrOptions.mode || 'keepSize'
+        : 'keepSize',
+    targetWidth:
+      typeof qualityOrOptions === 'object'
+        ? qualityOrOptions.targetWidth
+        : undefined,
+    targetHeight:
+      typeof qualityOrOptions === 'object'
+        ? qualityOrOptions.targetHeight
+        : undefined,
+    maxWidth:
+      typeof qualityOrOptions === 'object'
+        ? qualityOrOptions.maxWidth
+        : undefined,
+    maxHeight:
+      typeof qualityOrOptions === 'object'
+        ? qualityOrOptions.maxHeight
+        : undefined,
   })
 }
 
@@ -308,7 +326,7 @@ async function compressWithMultipleToolsWithStats(
   },
 ): Promise<CompressionStats> {
   const totalStartTime = performance.now()
-  
+
   // 根据文件类型选择工具
   const tools = file.type.includes('png')
     ? toolsCollections['png']
@@ -317,19 +335,22 @@ async function compressWithMultipleToolsWithStats(
       : file.type.includes('webp')
         ? toolsCollections['webp']
         : toolsCollections['others']
-  
+
   const attempts: CompressionAttempt[] = []
-  
+
   // 并行运行所有压缩工具（复用现有逻辑）
   const promises = tools.map(async (tool) => {
     const startTime = performance.now()
-    
+
     try {
       let compressedBlob: Blob
 
       switch (tool) {
         case 'browser-image-compression':
-          compressedBlob = await compressWithBrowserImageCompression(file, options)
+          compressedBlob = await compressWithBrowserImageCompression(
+            file,
+            options,
+          )
           break
         case 'compressorjs':
           compressedBlob = await compressWithCompressorJS(file, options)
@@ -357,7 +378,7 @@ async function compressWithMultipleToolsWithStats(
     } catch (error) {
       const endTime = performance.now()
       const duration = Math.round(endTime - startTime)
-      
+
       return {
         tool,
         blob: file,
@@ -368,23 +389,32 @@ async function compressWithMultipleToolsWithStats(
       } as CompressionAttempt
     }
   })
-  
+
   const results = await Promise.allSettled(promises)
-  
+
   results.forEach((result) => {
     if (result.status === 'fulfilled') {
       attempts.push(result.value)
     }
   })
-  
+
   const successfulAttempts = attempts.filter((attempt) => attempt.success)
-  const bestAttempt = successfulAttempts.length > 0 
-    ? successfulAttempts.reduce((best, current) => current.size < best.size ? current : best)
-    : { tool: 'none', blob: file, size: file.size, success: false, duration: 0 }
-  
+  const bestAttempt =
+    successfulAttempts.length > 0
+      ? successfulAttempts.reduce((best, current) =>
+          current.size < best.size ? current : best,
+        )
+      : {
+          tool: 'none',
+          blob: file,
+          size: file.size,
+          success: false,
+          duration: 0,
+        }
+
   const totalEndTime = performance.now()
   const totalDuration = Math.round(totalEndTime - totalStartTime)
-  
+
   return {
     bestTool: bestAttempt.tool,
     compressedFile: bestAttempt.blob,
@@ -392,14 +422,14 @@ async function compressWithMultipleToolsWithStats(
     compressedSize: bestAttempt.size,
     compressionRatio: ((file.size - bestAttempt.size) / file.size) * 100,
     totalDuration,
-    toolsUsed: attempts.map(attempt => ({
+    toolsUsed: attempts.map((attempt) => ({
       tool: attempt.tool,
       size: attempt.size,
       duration: attempt.duration,
       compressionRatio: ((file.size - attempt.size) / file.size) * 100,
       success: attempt.success,
       error: attempt.error,
-    }))
+    })),
   }
 }
 
