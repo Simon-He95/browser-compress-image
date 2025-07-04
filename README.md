@@ -1,6 +1,12 @@
 <div align="center">
-  <img src="./assets/kv.png" width="120" alt="Browser Compress### 🎯 多工具压缩 - 自动选择最优结果
+  <img src="./assets/kv.png" width="120" alt="Browser Compress">
+  
+  ### Browser Compress Image
+</div>
 
+
+
+### 🎯 多工具压缩 - 自动选择最优结果
 ```typescript
 import { compressWithMultipleTools } from '@simon_he/browser-compress-image'
 

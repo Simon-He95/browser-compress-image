@@ -58,8 +58,8 @@ importers:
         specifier: ^8.9.4
         version: 8.9.4(vue@3.5.17(typescript@4.9.5))
       element-plus:
-        specifier: ^2.10.2
-        version: 2.10.2(vue@3.5.17(typescript@4.9.5))
+        specifier: ^2.10.3
+        version: 2.10.3(vue@3.5.17(typescript@4.9.5))
       img-comparison-slider:
         specifier: ^8.0.6
         version: 8.0.6
@@ -84,7 +84,7 @@ importers:
         version: 0.29.6
       '@vitejs/plugin-vue':
         specifier: ^3.2.0
-        version: 3.2.0(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))
+        version: 3.2.0(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))
       '@vue/test-utils':
         specifier: ^2.4.6
         version: 2.4.6
@@ -93,7 +93,7 @@ importers:
         version: 4.9.5
       unocss:
         specifier: ^66.3.2
-        version: 66.3.2(postcss@8.5.6)(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))
+        version: 66.3.2(postcss@8.5.6)(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))
       unplugin-auto-import:
         specifier: ^19.3.0
         version: 19.3.0(@vueuse/core@8.9.4(vue@3.5.17(typescript@4.9.5)))
@@ -101,11 +101,11 @@ importers:
         specifier: ^28.8.0
         version: 28.8.0(@babel/parser@7.27.7)(vue@3.5.17(typescript@4.9.5))
       vite:
-        specifier: ^7.0.1
-        version: 7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
+        specifier: ^7.0.2
+        version: 7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
       vite-plugin-pages:
         specifier: ^0.33.1
-        version: 0.33.1(@vue/compiler-sfc@3.5.17)(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue-router@4.5.1(vue@3.5.17(typescript@4.9.5)))
+        version: 0.33.1(@vue/compiler-sfc@3.5.17)(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue-router@4.5.1(vue@3.5.17(typescript@4.9.5)))
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@17.0.45)(jiti@2.4.2)(jsdom@19.0.0)(yaml@2.8.0)
@@ -1575,8 +1575,8 @@ packages:
   electron-to-chromium@1.5.177:
     resolution: {integrity: sha512-7EH2G59nLsEMj97fpDuvVcYi6lwTcM1xuWw3PssD8xzboAW7zj7iB3COEEEATUfjLHrs5uKBLQT03V/8URx06g==}
 
-  element-plus@2.10.2:
-    resolution: {integrity: sha512-p2KiAa0jEGXrzdlTAfpiS7HQFAhla4gvx6H7RuDf+OO0uC3DGpolxvdHjFR8gt7+vaWyxQNcHa1sAdBkmjqlgA==}
+  element-plus@2.10.3:
+    resolution: {integrity: sha512-OLpf0iekuvWJrz1+H9ybvem6TYTKSNk6L1QDA3tYq2YWbogKXJnWpHG1UAGKR1B7gx+vUH7M15VIH3EijE9Kgw==}
     peerDependencies:
       vue: ^3.2.0
 
@@ -3049,8 +3049,8 @@ packages:
       yaml:
         optional: true
 
-  vite@7.0.1:
-    resolution: {integrity: sha512-BiKOQoW5HGR30E6JDeNsati6HnSPMVEKbkIWbCiol+xKeu3g5owrjy7kbk/QEMuzCV87dSUTvycYKmlcfGKq3Q==}
+  vite@7.0.2:
+    resolution: {integrity: sha512-hxdyZDY1CM6SNpKI4w4lcUc3Mtkd9ej4ECWVHSMrOdSinVc2zYOAppHeGc/hzmRo3pxM5blMzkuWHOJA/3NiFw==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -4032,13 +4032,13 @@ snapshots:
       '@typescript-eslint/types': 8.35.1
       eslint-visitor-keys: 4.2.1
 
-  '@unocss/astro@66.3.2(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))':
+  '@unocss/astro@66.3.2(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))':
     dependencies:
       '@unocss/core': 66.3.2
       '@unocss/reset': 66.3.2
-      '@unocss/vite': 66.3.2(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))
+      '@unocss/vite': 66.3.2(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))
     optionalDependencies:
-      vite: 7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
+      vite: 7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
     transitivePeerDependencies:
       - vue
 
@@ -4171,7 +4171,7 @@ snapshots:
     dependencies:
       '@unocss/core': 66.3.2
 
-  '@unocss/vite@66.3.2(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))':
+  '@unocss/vite@66.3.2(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@unocss/config': 66.3.2
@@ -4182,13 +4182,13 @@ snapshots:
       pathe: 2.0.3
       tinyglobby: 0.2.14
       unplugin-utils: 0.2.4
-      vite: 7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
+      vite: 7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
     transitivePeerDependencies:
       - vue
 
-  '@vitejs/plugin-vue@3.2.0(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))':
+  '@vitejs/plugin-vue@3.2.0(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))':
     dependencies:
-      vite: 7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
+      vite: 7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
       vue: 3.5.17(typescript@4.9.5)
 
   '@vitest/eslint-plugin@1.3.4(eslint@9.30.1(jiti@2.4.2))(typescript@4.9.5)(vitest@3.2.4(@types/debug@4.1.12)(@types/node@17.0.45)(jiti@2.4.2)(jsdom@19.0.0)(yaml@2.8.0))':
@@ -4723,7 +4723,7 @@ snapshots:
 
   electron-to-chromium@1.5.177: {}
 
-  element-plus@2.10.2(vue@3.5.17(typescript@4.9.5)):
+  element-plus@2.10.3(vue@3.5.17(typescript@4.9.5)):
     dependencies:
       '@ctrl/tinycolor': 3.6.1
       '@element-plus/icons-vue': 2.3.1(vue@3.5.17(typescript@4.9.5))
@@ -6392,9 +6392,9 @@ snapshots:
   universalify@0.2.0:
     optional: true
 
-  unocss@66.3.2(postcss@8.5.6)(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5)):
+  unocss@66.3.2(postcss@8.5.6)(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5)):
     dependencies:
-      '@unocss/astro': 66.3.2(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))
+      '@unocss/astro': 66.3.2(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))
       '@unocss/cli': 66.3.2
       '@unocss/core': 66.3.2
       '@unocss/postcss': 66.3.2(postcss@8.5.6)
@@ -6412,9 +6412,9 @@ snapshots:
       '@unocss/transformer-compile-class': 66.3.2
       '@unocss/transformer-directives': 66.3.2
       '@unocss/transformer-variant-group': 66.3.2
-      '@unocss/vite': 66.3.2(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))
+      '@unocss/vite': 66.3.2(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue@3.5.17(typescript@4.9.5))
     optionalDependencies:
-      vite: 7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
+      vite: 7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
     transitivePeerDependencies:
       - postcss
       - supports-color
@@ -6484,7 +6484,7 @@ snapshots:
       debug: 4.4.1
       es-module-lexer: 1.7.0
       pathe: 2.0.3
-      vite: 7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
+      vite: 7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -6499,7 +6499,7 @@ snapshots:
       - tsx
       - yaml
 
-  vite-plugin-pages@0.33.1(@vue/compiler-sfc@3.5.17)(vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue-router@4.5.1(vue@3.5.17(typescript@4.9.5))):
+  vite-plugin-pages@0.33.1(@vue/compiler-sfc@3.5.17)(vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0))(vue-router@4.5.1(vue@3.5.17(typescript@4.9.5))):
     dependencies:
       '@types/debug': 4.1.12
       debug: 4.4.1
@@ -6510,7 +6510,7 @@ snapshots:
       micromatch: 4.0.8
       picocolors: 1.1.1
       tinyglobby: 0.2.14
-      vite: 7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
+      vite: 7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0)
       yaml: 2.8.0
     optionalDependencies:
       '@vue/compiler-sfc': 3.5.17
@@ -6532,7 +6532,7 @@ snapshots:
       jiti: 2.4.2
       yaml: 2.8.0
 
-  vite@7.0.1(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0):
+  vite@7.0.2(@types/node@17.0.45)(jiti@2.4.2)(yaml@2.8.0):
     dependencies:
       esbuild: 0.25.5
       fdir: 6.4.6(picomatch@4.0.2)
