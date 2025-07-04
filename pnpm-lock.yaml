@@ -52,7 +52,7 @@ importers:
         specifier: ^1.2.10
         version: 1.2.10
       '@simon_he/browser-compress-image':
-        specifier: workspace:^1.0.1
+        specifier: workspace:^1.0.6
         version: link:..
       '@simon_he/git-fork-vue':
         specifier: ^0.0.18
