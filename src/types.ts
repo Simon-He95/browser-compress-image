@@ -46,6 +46,12 @@ export interface CompressOptions {
   maxHeight?: number
 
   /**
+   * 是否保留 EXIF 信息
+   * @default false
+   */
+  preserveExif?: boolean
+
+  /**
    * 返回结果类型
    * @default 'blob'
    */

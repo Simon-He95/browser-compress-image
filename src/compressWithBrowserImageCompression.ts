@@ -10,9 +10,10 @@ export default async function compressWithBrowserImageCompression(
     targetHeight?: number
     maxWidth?: number
     maxHeight?: number
+    preserveExif?: boolean
   },
 ): Promise<Blob> {
-  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight } =
+  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight, preserveExif = false } =
     options
 
   const compressionOptions: Options = {
@@ -21,7 +22,7 @@ export default async function compressWithBrowserImageCompression(
     alwaysKeepResolution: mode === 'keepSize',
     exifOrientation: 1,
     fileType: file.type,
-    preserveExif: true,
+    preserveExif: preserveExif,
     maxSizeMB: (file.size * 0.8) / (1024 * 1024), // 设置为原始文件大小的 MB
     maxWidthOrHeight:
       Math.min(maxWidth || targetWidth!, maxHeight || targetHeight!) ||

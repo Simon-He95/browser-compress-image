@@ -88,6 +88,7 @@ console.log('压缩统计:', {
 - **现代化 API** - 简洁易用的 async/await 接口
 - **高性能** - 基于 WebWorker 的并行处理
 - **灵活配置** - 自定义压缩质量和输出格式
+- **智能过滤** - 根据 EXIF 需求自动选择合适的压缩工具
 
 ## 🏆 为什么选择我们？
 
@@ -125,6 +126,12 @@ import { compress } from '@simon_he/browser-compress-image'
 // 压缩图片，默认返回 Blob
 const compressedBlob = await compress(file, 0.6)
 console.log('压缩完成！', compressedBlob)
+
+// 保留 EXIF 信息的压缩
+const compressedWithExif = await compress(file, {
+  quality: 0.8,
+  preserveExif: true
+})
 ```
 
 ### 🎯 多工具压缩 - 自动选择最优结果
@@ -182,8 +189,6 @@ document.addEventListener('paste', async (e) => {
   accept="image/*"
   @change="handleFolderUpload"
 />
-```
-
 ````typescript
 const handleFolderUpload = async (event: Event) => {
   const files = Array.from((event.target as HTMLInputElement).files || [])
@@ -304,20 +309,68 @@ interface CompressionStats {
 
 #### 🛠️ 支持的压缩工具
 
-| 工具                      | 标识符                        | 适用格式  | 特点                     |
-| ------------------------- | ----------------------------- | --------- | ------------------------ |
-| Browser Image Compression | `'browser-image-compression'` | JPEG, PNG | 快速压缩，兼容性好       |
-| CompressorJS              | `'compressorjs'`              | JPEG, PNG | 轻量级，配置灵活         |
-| Canvas                    | `'canvas'`                    | 所有格式  | 原生浏览器 API，通用性强 |
-| Gifsicle                  | `'gifsicle'`                  | GIF       | GIF 专用压缩引擎         |
+| 工具                      | 标识符                        | 适用格式  | EXIF支持 | 特点                     |
+| ------------------------- | ----------------------------- | --------- | -------- | ------------------------ |
+| Browser Image Compression | `'browser-image-compression'` | JPEG, PNG | ✅       | 快速压缩，兼容性好       |
+| CompressorJS              | `'compressorjs'`              | JPEG, PNG | ⚠️       | 轻量级，配置灵活         |
+| Canvas                    | `'canvas'`                    | 所有格式  | ❌       | 原生浏览器 API，通用性强 |
+| Gifsicle                  | `'gifsicle'`                  | GIF       | N/A      | GIF 专用压缩引擎         |
+
+**EXIF 支持说明：**
+- ✅ 完全支持：可以完整保留 EXIF 信息
+- ⚠️ 部分支持：可以保留基本信息，但可能会丢失某些元数据
+- ❌ 不支持：压缩过程会移除所有 EXIF 信息
+- N/A 不适用：该格式通常不包含 EXIF 信息
+
+### 📸 EXIF 信息处理
+
+当设置 `preserveExif: true` 时，库会自动进行智能工具过滤：
+
+| 工具                    | EXIF 支持 | 说明                                |
+| ----------------------- | --------- | ----------------------------------- |
+| browser-image-compression | ✅       | 原生支持 EXIF 保留                  |
+| CompressorJS           | ✅       | 支持 EXIF 保留                     |
+| Canvas                 | ❌       | 不支持（会被自动过滤）              |
+| gifsicle               | ❌       | 不支持（会被自动过滤）              |
+
+**智能过滤机制**：
+- 当 `preserveExif: true` 时，系统自动过滤掉 Canvas 和 gifsicle 工具
+- 确保只使用支持 EXIF 保留的工具进行压缩
+- 如果没有可用的 EXIF 支持工具，会抛出错误提示用户调整参数
+
+```typescript
+// EXIF 信息会被保留，只使用 browser-image-compression 和 CompressorJS
+const result = await compress(file, {
+  quality: 0.8,
+  preserveExif: true  // 自动过滤不支持 EXIF 的工具
+})
+
+// 注意：GIF 格式不支持 EXIF，会抛出错误
+try {
+  const gifResult = await compress(gifFile, {
+    preserveExif: true  // ❌ 会抛出错误
+  })
+} catch (error) {
+  console.error('GIF files do not support EXIF preservation')
+}
+```
+
+#### 🖼️ 支持的图片格式
+
+- **JPEG** (.jpg, .jpeg) - 使用 browser-image-compression、CompressorJS、Canvas
+- **PNG** (.png) - 使用 browser-image-compression、CompressorJS、Canvas
+- **WebP** (.webp) - 使用 Canvas
+- **GIF** (.gif) - 使用 gifsicle-wasm-browser
+- **其他格式** - 使用 Canvas 和 CompressorJS 兜底
 
 #### 📋 参数说明
 
-| 参数      | 类型                 | 默认值   | 说明                               |
-| --------- | -------------------- | -------- | ---------------------------------- |
-| `file`    | `File`               | -        | 要压缩的图片文件                   |
-| `quality` | `number`             | `0.6`    | 压缩质量，范围 0-1，值越小文件越小 |
-| `type`    | `CompressResultType` | `'blob'` | 输出格式类型                       |
+| 参数          | 类型                 | 默认值   | 说明                               |
+| ------------- | -------------------- | -------- | ---------------------------------- |
+| `file`        | `File`               | -        | 要压缩的图片文件                   |
+| `quality`     | `number`             | `0.6`    | 压缩质量，范围 0-1，值越小文件越小 |
+| `type`        | `CompressResultType` | `'blob'` | 输出格式类型                       |
+| `preserveExif`| `boolean`            | `false`  | 是否保留 EXIF 信息（仅部分工具支持）|
 
 #### 🎯 支持的输出格式
 
@@ -327,14 +380,6 @@ interface CompressionStats {
 | `'file'`        | `File`        | 文件对象，保留文件名 | 表单提交、文件系统  |
 | `'base64'`      | `string`      | Base64 编码字符串    | 图片显示、数据传输  |
 | `'arrayBuffer'` | `ArrayBuffer` | 二进制数据缓冲区     | WebSocket、底层处理 |
-
-#### 🖼️ 支持的图片格式
-
-- **JPEG** (.jpg, .jpeg) - 使用 browser-image-compression、CompressorJS、Canvas
-- **PNG** (.png) - 使用 browser-image-compression、CompressorJS、Canvas
-- **WebP** (.webp) - 使用 Canvas
-- **GIF** (.gif) - 使用 gifsicle-wasm-browser
-- **其他格式** - 使用 Canvas 和 CompressorJS 兜底
 
 ### 🎨 UI 交互功能
 

@@ -35,6 +35,12 @@ type CompressorTool =
   | 'gifsicle'
   | 'canvas'
 
+// 支持 EXIF 保留的工具
+const EXIF_SUPPORTED_TOOLS: CompressorTool[] = [
+  'browser-image-compression',
+  'compressorjs',
+]
+
 // 压缩结果接口
 interface CompressionAttempt {
   tool: CompressorTool
@@ -94,6 +100,7 @@ export async function compress<T extends CompressResultType = 'blob'>(
     targetHeight,
     maxWidth,
     maxHeight,
+    preserveExif = false,
     type: resultType = 'blob' as T,
   } = options
 
@@ -105,6 +112,7 @@ export async function compress<T extends CompressResultType = 'blob'>(
     targetHeight,
     maxWidth,
     maxHeight,
+    preserveExif,
   }
 
   // 根据文件类型选择合适的压缩工具组合
@@ -145,10 +153,21 @@ async function compressWithMultipleTools(
     targetHeight?: number
     maxWidth?: number
     maxHeight?: number
+    preserveExif?: boolean
   },
   tools: CompressorTool[],
 ): Promise<Blob> {
   const totalStartTime = performance.now()
+  
+  // 当需要保留 EXIF 时，过滤掉不支持的工具
+  if (options.preserveExif) {
+    tools = tools.filter(tool => EXIF_SUPPORTED_TOOLS.includes(tool))
+    if (tools.length === 0) {
+      throw new Error('No EXIF-supporting tools available for this file type. Please disable preserveExif or use a different file format.')
+    }
+    devLog.log('preserveExif=true, filtered tools:', tools)
+  }
+  
   const attempts: CompressionAttempt[] = []
   // 并行运行所有压缩工具
   const promises = tools.map(async (tool) => {
@@ -310,6 +329,10 @@ export async function compressWithStats(
       typeof qualityOrOptions === 'object'
         ? qualityOrOptions.maxHeight
         : undefined,
+    preserveExif:
+      typeof qualityOrOptions === 'object'
+        ? qualityOrOptions.preserveExif || false
+        : false,
   })
 }
 
@@ -323,18 +346,28 @@ async function compressWithMultipleToolsWithStats(
     targetHeight?: number
     maxWidth?: number
     maxHeight?: number
+    preserveExif?: boolean
   },
 ): Promise<CompressionStats> {
   const totalStartTime = performance.now()
 
   // 根据文件类型选择工具
-  const tools = file.type.includes('png')
+  let tools = file.type.includes('png')
     ? toolsCollections['png']
     : file.type.includes('gif')
       ? toolsCollections['gif']
       : file.type.includes('webp')
         ? toolsCollections['webp']
         : toolsCollections['others']
+
+  // 当需要保留 EXIF 时，过滤掉不支持的工具
+  if (options.preserveExif) {
+    tools = tools.filter(tool => EXIF_SUPPORTED_TOOLS.includes(tool))
+    if (tools.length === 0) {
+      throw new Error('No EXIF-supporting tools available for this file type. Please disable preserveExif or use a different file format.')
+    }
+    devLog.log('preserveExif=true, filtered tools:', tools)
+  }
 
   const attempts: CompressionAttempt[] = []
 

@@ -10,15 +10,18 @@ export default async function compressWithGifsicle(
     targetHeight?: number
     maxWidth?: number
     maxHeight?: number
+    preserveExif?: boolean
   },
 ): Promise<Blob> {
-  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight } =
+  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight, preserveExif = false } =
     options
 
   // Gifsicle 仅适用于 GIF
   if (!file.type.includes('gif')) {
     throw new Error('Gifsicle is only for GIF files')
   }
+
+  // 注意：GIF 格式通常不包含 EXIF 信息，preserveExif 参数在此处被忽略
 
   let command: string
   if (mode === 'keepSize') {

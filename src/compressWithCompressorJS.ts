@@ -9,9 +9,10 @@ export default async function compressWithCompressorJS(
     targetHeight?: number
     maxWidth?: number
     maxHeight?: number
+    preserveExif?: boolean
   },
 ): Promise<Blob> {
-  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight } =
+  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight, preserveExif = false } =
     options
 
   // CompressorJS 主要适用于 JPEG，对于其他格式效果有限
@@ -20,9 +21,9 @@ export default async function compressWithCompressorJS(
   }
 
   return new Promise((resolve, reject) => {
-    const compressorOptions: any = {
+    const compressorOptions: Compressor.Options = {
       quality,
-      checkOrientation: false,
+      retainExif: preserveExif, // 如果保留EXIF，则不检查方向
       mimeType: file.type,
       success: (compressedBlob: Blob | File) => resolve(compressedBlob as Blob),
       error: reject,
