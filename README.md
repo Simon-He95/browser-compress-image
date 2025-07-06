@@ -4,9 +4,8 @@
   ### Browser Compress Image
 </div>
 
-
-
 ### 🎯 多工具压缩 - 自动选择最优结果
+
 ```typescript
 import { compressWithMultipleTools } from '@simon_he/browser-compress-image'
 
@@ -89,6 +88,7 @@ console.log('压缩统计:', {
 - **高性能** - 基于 WebWorker 的并行处理
 - **灵活配置** - 自定义压缩质量和输出格式
 - **智能过滤** - 根据 EXIF 需求自动选择合适的压缩工具
+- **多结果比较** - 支持返回所有工具的压缩结果进行性能分析
 
 ## 🏆 为什么选择我们？
 
@@ -130,24 +130,36 @@ console.log('压缩完成！', compressedBlob)
 // 保留 EXIF 信息的压缩
 const compressedWithExif = await compress(file, {
   quality: 0.8,
-  preserveExif: true
+  preserveExif: true,
 })
 ```
 
 ### 🎯 多工具压缩 - 自动选择最优结果
 
 ```typescript
-import { compressWithMultipleTools } from '@simon_he/browser-compress-image'
+import { compress } from '@simon_he/browser-compress-image'
 
-// 使用多种压缩工具并行处理，自动选择最优结果
-const result = await compressWithMultipleTools(file, {
+// 默认行为：自动选择最优结果
+const compressedBlob = await compress(file, {
   quality: 0.8,
-  tools: ['browser-image-compression', 'compressorjs', 'canvas'],
+  preserveExif: true,
 })
 
-console.log('最优压缩工具:', result.bestTool)
-console.log('压缩后文件:', result.compressedFile)
-console.log('所有结果:', result.results)
+// 获取所有工具的压缩结果进行比较
+const allResults = await compress(file, {
+  quality: 0.8,
+  returnAllResults: true, // 返回所有工具的结果
+  type: 'blob',
+})
+
+console.log('最优工具:', allResults.bestTool)
+console.log('最优结果:', allResults.bestResult)
+console.log('所有结果:')
+allResults.allResults.forEach((result) => {
+  console.log(
+    `${result.tool}: ${result.compressedSize} bytes (${result.compressionRatio.toFixed(1)}% reduction)`,
+  )
+})
 ```
 
 ### 📁 多文件批量处理
@@ -180,7 +192,7 @@ document.addEventListener('paste', async (e) => {
 
 ### 📂 文件夹上传
 
-```html
+`````html
 <!-- HTML 中设置 webkitdirectory 属性 -->
 <input
   type="file"
@@ -189,36 +201,19 @@ document.addEventListener('paste', async (e) => {
   accept="image/*"
   @change="handleFolderUpload"
 />
-````typescript
-const handleFolderUpload = async (event: Event) => {
-  const files = Array.from((event.target as HTMLInputElement).files || [])
-  const imageFiles = files.filter(file => file.type.startsWith('image/'))
-
-  // 批量压缩文件夹中的所有图片
-  const results = await Promise.all(
-    imageFiles.map(async file => ({
-      original: file,
-      compressed: await compress(file, 0.7, 'file'),
-      path: file.webkitRelativePath
-    }))
-  )
-}
-
-### 🎨 多种输出格式
-
-```typescript
-// 🔹 返回 Blob (默认)
-const blob = await compress(file, 0.6, 'blob')
-
-// 🔹 返回 File 对象，保留文件名
-const file = await compress(originalFile, 0.6, 'file')
-
-// 🔹 返回 Base64 字符串，直接用于 img src
-const base64 = await compress(file, 0.6, 'base64')
-
-// 🔹 返回 ArrayBuffer，用于进一步处理
-const arrayBuffer = await compress(file, 0.6, 'arrayBuffer')
-````
+````typescript const handleFolderUpload = async (event: Event) => { const files
+= Array.from((event.target as HTMLInputElement).files || []) const imageFiles =
+files.filter(file => file.type.startsWith('image/')) //
+批量压缩文件夹中的所有图片 const results = await Promise.all(
+imageFiles.map(async file => ({ original: file, compressed: await compress(file,
+0.7, 'file'), path: file.webkitRelativePath })) ) } ### 🎨 多种输出格式
+```typescript // 🔹 返回 Blob (默认) const blob = await compress(file, 0.6,
+'blob') // 🔹 返回 File 对象，保留文件名 const file = await
+compress(originalFile, 0.6, 'file') // 🔹 返回 Base64 字符串，直接用于 img src
+const base64 = await compress(file, 0.6, 'base64') // 🔹 返回
+ArrayBuffer，用于进一步处理 const arrayBuffer = await compress(file, 0.6,
+'arrayBuffer')
+`````
 
 ### 🎯 实际应用场景
 
@@ -317,6 +312,7 @@ interface CompressionStats {
 | Gifsicle                  | `'gifsicle'`                  | GIF       | N/A      | GIF 专用压缩引擎         |
 
 **EXIF 支持说明：**
+
 - ✅ 完全支持：可以完整保留 EXIF 信息
 - ⚠️ 部分支持：可以保留基本信息，但可能会丢失某些元数据
 - ❌ 不支持：压缩过程会移除所有 EXIF 信息
@@ -326,14 +322,15 @@ interface CompressionStats {
 
 当设置 `preserveExif: true` 时，库会自动进行智能工具过滤：
 
-| 工具                    | EXIF 支持 | 说明                                |
-| ----------------------- | --------- | ----------------------------------- |
-| browser-image-compression | ✅       | 原生支持 EXIF 保留                  |
-| CompressorJS           | ✅       | 支持 EXIF 保留                     |
-| Canvas                 | ❌       | 不支持（会被自动过滤）              |
-| gifsicle               | ❌       | 不支持（会被自动过滤）              |
+| 工具                      | EXIF 支持 | 说明                   |
+| ------------------------- | --------- | ---------------------- |
+| browser-image-compression | ✅        | 原生支持 EXIF 保留     |
+| CompressorJS              | ✅        | 支持 EXIF 保留         |
+| Canvas                    | ❌        | 不支持（会被自动过滤） |
+| gifsicle                  | ❌        | 不支持（会被自动过滤） |
 
 **智能过滤机制**：
+
 - 当 `preserveExif: true` 时，系统自动过滤掉 Canvas 和 gifsicle 工具
 - 确保只使用支持 EXIF 保留的工具进行压缩
 - 如果没有可用的 EXIF 支持工具，会抛出错误提示用户调整参数
@@ -342,13 +339,13 @@ interface CompressionStats {
 // EXIF 信息会被保留，只使用 browser-image-compression 和 CompressorJS
 const result = await compress(file, {
   quality: 0.8,
-  preserveExif: true  // 自动过滤不支持 EXIF 的工具
+  preserveExif: true, // 自动过滤不支持 EXIF 的工具
 })
 
 // 注意：GIF 格式不支持 EXIF，会抛出错误
 try {
   const gifResult = await compress(gifFile, {
-    preserveExif: true  // ❌ 会抛出错误
+    preserveExif: true, // ❌ 会抛出错误
   })
 } catch (error) {
   console.error('GIF files do not support EXIF preservation')
@@ -363,14 +360,63 @@ try {
 - **GIF** (.gif) - 使用 gifsicle-wasm-browser
 - **其他格式** - 使用 Canvas 和 CompressorJS 兜底
 
+### 🔍 多工具结果比较
+
+当设置 `returnAllResults: true` 时，可以获取所有压缩工具的详细结果：
+
+```typescript
+interface MultipleCompressResults<T> {
+  bestResult: CompressResult<T> // 最优结果（文件大小最小）
+  bestTool: string // 最优工具名称
+  allResults: CompressResultItem<T>[] // 所有工具的结果
+  totalDuration: number // 总耗时（毫秒）
+}
+
+interface CompressResultItem<T> {
+  tool: string // 工具名称
+  result: CompressResult<T> // 压缩结果
+  originalSize: number // 原始大小
+  compressedSize: number // 压缩后大小
+  compressionRatio: number // 压缩比例（百分比）
+  duration: number // 耗时（毫秒）
+  success: boolean // 是否成功
+  error?: string // 错误信息（如果失败）
+}
+
+// 使用示例
+const results = await compress(file, {
+  quality: 0.8,
+  returnAllResults: true,
+  type: 'blob',
+})
+
+// 分析所有工具的性能
+results.allResults.forEach((item) => {
+  console.log(
+    `${item.tool}: ${item.compressedSize} bytes, ${item.compressionRatio.toFixed(1)}% reduction, ${item.duration}ms`,
+  )
+})
+
+// 使用最优结果
+const optimizedFile = results.bestResult
+```
+
+**使用场景：**
+
+- 🔬 **性能分析** - 比较不同工具在特定图片上的表现
+- 📊 **数据收集** - 收集压缩统计数据用于优化
+- 🎯 **自定义选择** - 根据特定需求（如速度优先）选择合适工具
+- 🔍 **调试诊断** - 分析压缩失败的原因
+
 #### 📋 参数说明
 
-| 参数          | 类型                 | 默认值   | 说明                               |
-| ------------- | -------------------- | -------- | ---------------------------------- |
-| `file`        | `File`               | -        | 要压缩的图片文件                   |
-| `quality`     | `number`             | `0.6`    | 压缩质量，范围 0-1，值越小文件越小 |
-| `type`        | `CompressResultType` | `'blob'` | 输出格式类型                       |
-| `preserveExif`| `boolean`            | `false`  | 是否保留 EXIF 信息（仅部分工具支持）|
+| 参数               | 类型                 | 默认值   | 说明                                 |
+| ------------------ | -------------------- | -------- | ------------------------------------ |
+| `file`             | `File`               | -        | 要压缩的图片文件                     |
+| `quality`          | `number`             | `0.6`    | 压缩质量，范围 0-1，值越小文件越小   |
+| `type`             | `CompressResultType` | `'blob'` | 输出格式类型                         |
+| `preserveExif`     | `boolean`            | `false`  | 是否保留 EXIF 信息（仅部分工具支持） |
+| `returnAllResults` | `boolean`            | `false`  | 是否返回所有工具的压缩结果           |
 
 #### 🎯 支持的输出格式
 

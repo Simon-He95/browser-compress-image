@@ -12,8 +12,15 @@ export default async function compressWithCompressorJS(
     preserveExif?: boolean
   },
 ): Promise<Blob> {
-  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight, preserveExif = false } =
-    options
+  const {
+    quality,
+    mode,
+    targetWidth,
+    targetHeight,
+    maxWidth,
+    maxHeight,
+    preserveExif = false,
+  } = options
 
   // CompressorJS 主要适用于 JPEG，对于其他格式效果有限
   if (!file.type.includes('jpeg') && !file.type.includes('jpg')) {

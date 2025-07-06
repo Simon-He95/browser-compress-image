@@ -13,8 +13,15 @@ export default async function compressWithGifsicle(
     preserveExif?: boolean
   },
 ): Promise<Blob> {
-  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight, preserveExif = false } =
-    options
+  const {
+    quality,
+    mode,
+    targetWidth,
+    targetHeight,
+    maxWidth,
+    maxHeight,
+    preserveExif = false,
+  } = options
 
   // Gifsicle 仅适用于 GIF
   if (!file.type.includes('gif')) {

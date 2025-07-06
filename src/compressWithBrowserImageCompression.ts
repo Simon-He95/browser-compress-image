@@ -13,8 +13,15 @@ export default async function compressWithBrowserImageCompression(
     preserveExif?: boolean
   },
 ): Promise<Blob> {
-  const { quality, mode, targetWidth, targetHeight, maxWidth, maxHeight, preserveExif = false } =
-    options
+  const {
+    quality,
+    mode,
+    targetWidth,
+    targetHeight,
+    maxWidth,
+    maxHeight,
+    preserveExif = false,
+  } = options
 
   const compressionOptions: Options = {
     useWebWorker: true,

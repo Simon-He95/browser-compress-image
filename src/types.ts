@@ -52,8 +52,32 @@ export interface CompressOptions {
   preserveExif?: boolean
 
   /**
+   * 是否返回所有工具的压缩结果
+   * @default false
+   */
+  returnAllResults?: boolean
+
+  /**
    * 返回结果类型
    * @default 'blob'
    */
   type?: CompressResultType
+}
+
+export interface CompressResultItem<T extends CompressResultType> {
+  tool: string
+  result: CompressResult<T>
+  originalSize: number
+  compressedSize: number
+  compressionRatio: number
+  duration: number
+  success: boolean
+  error?: string
+}
+
+export interface MultipleCompressResults<T extends CompressResultType> {
+  bestResult: CompressResult<T>
+  bestTool: string
+  allResults: CompressResultItem<T>[]
+  totalDuration: number
 }
