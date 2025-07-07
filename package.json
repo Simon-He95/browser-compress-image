@@ -56,6 +56,7 @@
   "scripts": {
     "build": "tsdown",
     "play": "pnpm run -C playground dev",
+    "dev": "pnpm run -C playground dev",
     "play:build": "pnpm run -C playground build",
     "lint": "prettier --cache --write .",
     "test": "vitest --dir test -u",

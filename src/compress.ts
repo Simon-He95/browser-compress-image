@@ -5,10 +5,10 @@ import type {
   MultipleCompressResults,
   CompressResultItem,
 } from './types'
-import compressWithBrowserImageCompression from './compressWithBrowserImageCompression'
-import compressWithCompressorJS from './compressWithCompressorJS'
-import compressWithCanvas from './compressWithCanvas'
-import compressWithGifsicle from './compressWithGifsicle'
+import compressWithBrowserImageCompression from './tools/compressWithBrowserImageCompression'
+import compressWithCompressorJS from './tools/compressWithCompressorJS'
+import compressWithCanvas from './tools/compressWithCanvas'
+import compressWithGifsicle from './tools/compressWithGifsicle'
 import convertBlobToType from './convertBlobToType'
 
 // 开发环境日志工具
@@ -36,6 +36,9 @@ type CompressorTool =
   | 'compressorjs'
   | 'gifsicle'
   | 'canvas'
+  | '@jsquash/webp'
+  | '@jsquash/png' // 添加 jsquash/png 工具
+  | '@jsquash/jpeg' // 添加 jsquash/jpeg 工具
   | 'original' // 添加原文件选项
 
 // 支持 EXIF 保留的工具
@@ -58,6 +61,7 @@ const toolsCollections: Record<string, CompressorTool[]> = {
   png: ['browser-image-compression', 'canvas'],
   gif: ['gifsicle'],
   webp: ['canvas', 'browser-image-compression'],
+  jpeg: ['compressorjs', 'canvas', 'browser-image-compression'],
   others: ['browser-image-compression', 'compressorjs', 'canvas'],
 }
 
@@ -132,7 +136,9 @@ export async function compress<T extends CompressResultType = 'blob'>(
       ? toolsCollections['gif']
       : file.type.includes('webp')
         ? toolsCollections['webp']
-        : toolsCollections['others']
+        : file.type.includes('jpeg') || file.type.includes('jpg')
+          ? toolsCollections['jpeg']
+          : toolsCollections['others']
 
   // 如果需要返回所有结果
   if (returnAllResults) {
